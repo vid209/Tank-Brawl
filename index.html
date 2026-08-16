@@ -2,555 +2,581 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ТАНКИ</title>
     <style>
+        * {
+            user-select: none;
+            box-sizing: border-box;
+        }
         body {
             margin: 0;
             min-height: 100vh;
-            background: #0a0c0e;
+            background: radial-gradient(circle at 30% 20%, #0a1a0a, #020503);
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: 'Courier New', monospace;
+        }
+        .menu {
+            background: #1e2a1c;
+            border: 3px solid #e9b45e;
+            border-radius: 48px;
+            padding: 30px 25px;
+            max-width: 550px;
+            width: 90%;
+            text-align: center;
+        }
+        .menu h1 {
+            font-size: 1.8rem;
+            margin: 0 0 10px;
+            color: #f7e9c3;
+        }
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 25px 0;
+        }
+        .mode-btn {
+            background: #2f3a28;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #ffeaac;
             font-family: monospace;
+            transition: 0.05s linear;
+        }
+        .mode-btn:active { transform: scale(0.98); }
+        .mode-btn.pvp { background: #8b5a2a; }
+        .mode-btn.ctf { background: #2a6e5a; }
+        .mode-btn.bots { background: #3a6e3a; }
+        .mode-btn.online { background: #3a5a8a; }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         canvas {
-            display: block;
-            box-shadow: 0 0 0 3px #5a4a2e, 0 10px 25px black;
-            border-radius: 8px;
-            cursor: none;
+            box-shadow: 0 0 0 4px #ab8743, 0 15px 30px black;
+            border-radius: 16px;
         }
         .info {
-            position: fixed;
-            top: 15px;
-            left: 20px;
-            background: #1e1b16;
-            padding: 6px 14px;
-            border-radius: 20px;
-            color: #f5e2b0;
-            font-weight: bold;
-            font-size: 20px;
-            gap: 25px;
             display: flex;
-            font-family: monospace;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .restart {
-            position: fixed;
-            bottom: 18px;
-            left: 20px;
-            background: #2c241a;
-            padding: 5px 14px;
-            border-radius: 30px;
-            color: #cfb87c;
-            font-size: 15px;
+            justify-content: space-between;
+            width: 800px;
+            margin-bottom: 12px;
+            background: #1e1b14cc;
+            padding: 8px 25px;
+            border-radius: 40px;
+            color: #f7ecc7;
             font-weight: bold;
-            pointer-events: none;
-            font-family: monospace;
+        }
+        .controls {
+            margin-top: 12px;
+            background: #1a1a14aa;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: #cfc68f;
+            text-align: center;
         }
         kbd {
-            background: #000000aa;
+            background: #2c2a24;
+            border-radius: 6px;
             padding: 2px 8px;
-            border-radius: 30px;
-            margin: 0 3px;
             color: #ffdd99;
         }
+        .back-btn {
+            background: #5a4a2e;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            color: white;
+            font-family: monospace;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
         @media (max-width: 850px) {
-            .info { font-size: 16px; top: 8px; left: 8px; }
-            .restart { font-size: 11px; }
+            .info { width: 95%; font-size: 0.7rem; }
+            canvas { width: 100%; height: auto; }
         }
     </style>
 </head>
 <body>
-<div class="info">
-    <span>❤️ <span id="healthDisplay">3</span></span>
-    <span>⭐ <span id="scoreDisplay">0</span></span>
+<div id="menu" class="menu">
+    <h1>⚡ ТАНКИ ⚡</h1>
+    <div class="mode-buttons">
+        <button class="mode-btn bots" data-mode="bots">🎮 ОФЛАЙН (против ботов)</button>
+        <button class="mode-btn ctf" data-mode="ctf">🏁 ЗАХВАТ ФЛАГА (офлайн)</button>
+        <button class="mode-btn pvp" data-mode="pvp">⚔️ PVP 2 ИГРОКА (1 ПК)</button>
+        <button class="mode-btn online" data-mode="online">🌐 ПО СЕТИ (сервер + клиент)</button>
+    </div>
+    <div style="font-size: 11px; margin-top: 20px; opacity: 0.6;">
+        Управление: стрелки + пробел | R - рестарт
+    </div>
 </div>
-<div class="restart">
-    🔁 <kbd>R</kbd> перезапуск
+
+<div id="game" class="game-container" style="display: none;">
+    <div class="info">
+        <span>❤️ <span id="healthValue">3</span></span>
+        <span>⭐ <span id="scoreValue">0</span></span>
+        <span id="modeLabel">🎮 РЕЖИМ</span>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div class="controls" id="controlsHint"></div>
+    <button class="back-btn" id="backBtn">🏠 В МЕНЮ</button>
 </div>
-<canvas id="gameCanvas" width="800" height="600"></canvas>
 
 <script>
-    (function(){
-        // ----- КАНВАС -----
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // ========== ПЕРЕМЕННЫЕ ==========
-        let gameOver = false;
-        let health = 3;
-        let score = 0;
-        
-        // ----- ТАНК ИГРОКА -----
-        let tank = {
-            x: 380, y: 520,
-            w: 40, h: 40,
-            dir: 0      // 0-вверх, 1-вниз, 2-влево, 3-вправо
-        };
-        
-        // ----- ПУЛЯ ИГРОКА -----
-        let bullet = {
-            active: false,
-            x: 0, y: 0,
-            speedX: 0, speedY: 0
-        };
-        let shootDelay = 0;
-        
-        // ----- ПУЛИ ВРАГОВ -----
-        let enemyBullets = [];
-        
-        // ----- ВРАГИ -----
-        let enemies = [];
-        
-        // ----- КИРПИЧИ -----
-        let bricks = [];
-        
-        // ----- УПРАВЛЕНИЕ (клавиши) -----
-        const keys = {
-            ArrowLeft: false, ArrowRight: false,
-            ArrowUp: false, ArrowDown: false,
-            Space: false
-        };
-        
-        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
-        function updateUI() {
-            document.getElementById('healthDisplay').innerText = health;
-            document.getElementById('scoreDisplay').innerText = score;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // ========== ПЕРЕМЕННЫЕ ==========
+    let currentMode = null;
+    let gameRunning = false;
+    let gameOver = false;
+    let score = 0;
+    let bricks = [];
+    
+    // Игрок 1 (всегда зелёный, снизу)
+    let p1 = { x: 380, y: 520, w: 40, h: 40, dir: 0, health: 3 };
+    let p1Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
+    let p1Delay = 0;
+    
+    // Игрок 2 (для PVP режима, красный сверху)
+    let p2 = null;
+    let p2Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
+    let p2Delay = 0;
+    
+    // Боты
+    let enemies = [];
+    
+    // Флаг (для CTF)
+    let flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
+    
+    // Управление
+    const keys = { left: false, right: false, up: false, down: false, fire: false };
+    const keysP2 = { left: false, right: false, up: false, down: false, fire: false };
+    
+    // ========== ПОСТРОЕНИЕ СТЕН ==========
+    function buildBricks() {
+        let arr = [];
+        for (let i = 0; i < 20; i++) {
+            arr.push({ x: i * 42, y: 0, w: 38, h: 38 });
+            arr.push({ x: i * 42, y: 562, w: 38, h: 38 });
         }
-        
-        // столкновение (прямоугольники)
-        function collide(r1, r2) {
-            return !(r2.x > r1.x + r1.w ||
-                r2.x + r2.w < r1.x ||
-                r2.y > r1.y + r1.h ||
-                r2.y + r2.h < r1.y);
+        for (let i = 0; i < 15; i++) {
+            arr.push({ x: 0, y: i * 42, w: 38, h: 38 });
+            arr.push({ x: 762, y: i * 42, w: 38, h: 38 });
         }
-        
-        // ========== ПОСТРОЕНИЕ КИРПИЧЕЙ (как в оригинале) ==========
-        function buildBricks() {
-            let arr = [];
-            // рамка (верх/низ)
-            for (let i = 0; i < 20; i++) {
-                arr.push({ x: i * 42, y: 0, w: 38, h: 38 });
-                arr.push({ x: i * 42, y: 562, w: 38, h: 38 });
+        for (let i = 3; i < 18; i += 4) {
+            for (let j = 4; j < 10; j += 2) {
+                arr.push({ x: i * 42, y: j * 42, w: 38, h: 38 });
             }
-            // рамка (лево/право)
-            for (let i = 0; i < 15; i++) {
-                arr.push({ x: 0, y: i * 42, w: 38, h: 38 });
-                arr.push({ x: 762, y: i * 42, w: 38, h: 38 });
-            }
-            // препятствия внутри
-            for (let i = 3; i < 18; i += 4) {
-                for (let j = 4; j < 10; j += 2) {
-                    arr.push({ x: i * 42, y: j * 42, w: 38, h: 38 });
-                }
-            }
-            return arr;
         }
+        return arr;
+    }
+    
+    function collide(r1, r2) {
+        return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
+    }
+    
+    function updateUI() {
+        document.getElementById('healthValue').innerText = p1.health;
+        document.getElementById('scoreValue').innerText = score;
+    }
+    
+    // ========== РЕСТАРТ ==========
+    function restart() {
+        gameOver = false;
+        score = 0;
+        p1 = { x: 380, y: 520, w: 40, h: 40, dir: 0, health: 3 };
+        p1Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
+        p1Delay = 0;
+        bricks = buildBricks();
+        flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
         
-        // ========== СОЗДАТЬ ВРАГОВ ==========
-        function createEnemies() {
-            let arr = [];
+        if (currentMode === 'pvp') {
+            p2 = { x: 380, y: 80, w: 40, h: 40, dir: 1, health: 3 };
+            p2Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
+            p2Delay = 0;
+            enemies = [];
+        } else if (currentMode === 'bots' || currentMode === 'ctf') {
+            p2 = null;
+            enemies = [];
             for (let i = 0; i < 3; i++) {
-                arr.push({
-                    x: 100 + i * 250, y: 80,
-                    w: 40, h: 40,
-                    dir: 1,           // направление (1=вниз)
-                    moveTimer: 0,
-                    shootTimer: Math.floor(Math.random() * 50)
-                });
+                enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
             }
-            return arr;
         }
+        updateUI();
+    }
+    
+    // ========== ДВИЖЕНИЕ ТАНКА ==========
+    function moveTank(tank, dx, dy, newDir, isP1) {
+        let newX = tank.x + dx;
+        let newY = tank.y + dy;
+        if (newX < 2) newX = 2;
+        if (newX > 758) newX = 758;
+        if (newY < 2) newY = 2;
+        if (newY > 558) newY = 558;
+        let oldX = tank.x, oldY = tank.y;
+        tank.x = newX;
+        tank.y = newY;
+        tank.dir = newDir;
         
-        // ========== ПЕРЕЗАПУСК ==========
-        function restartGame() {
-            gameOver = false;
-            health = 3;
-            score = 0;
-            updateUI();
-            
-            tank = { x: 380, y: 520, w: 40, h: 40, dir: 0 };
-            bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
-            shootDelay = 0;
-            enemyBullets = [];
-            
-            bricks = buildBricks();
-            enemies = createEnemies();
-        }
-        
-        // ========== ЛОГИКА ДВИЖЕНИЯ ТАНКА + СТОЛКНОВЕНИЕ ==========
-        function moveTank(dx, dy, newDir) {
-            let newX = tank.x + dx;
-            let newY = tank.y + dy;
-            // границы
-            if (newX < 2) newX = 2;
-            if (newX > 758) newX = 758;
-            if (newY < 2) newY = 2;
-            if (newY > 558) newY = 558;
-            
-            let oldX = tank.x, oldY = tank.y;
-            tank.x = newX;
-            tank.y = newY;
-            tank.dir = newDir;
-            
-            // столкновение с кирпичами
-            for (let b of bricks) {
-                if (collide({x: tank.x, y: tank.y, w: tank.w, h: tank.h}, b)) {
-                    tank.x = oldX;
-                    tank.y = oldY;
-                    break;
-                }
+        for (let b of bricks) {
+            if (collide({x: tank.x, y: tank.y, w: 40, h: 40}, b)) {
+                tank.x = oldX;
+                tank.y = oldY;
+                break;
             }
         }
         
-        // ========== ВЫСТРЕЛ ИГРОКА ==========
-        function shoot() {
-            if (bullet.active) return;
-            if (shootDelay > 0) return;
-            shootDelay = 15;
-            bullet.active = true;
-            
-            if (tank.dir == 0) { // вверх
-                bullet.x = tank.x + 16;
-                bullet.y = tank.y;
-                bullet.speedX = 0; bullet.speedY = -8;
-            } else if (tank.dir == 1) { // вниз
-                bullet.x = tank.x + 16;
-                bullet.y = tank.y + 40;
-                bullet.speedX = 0; bullet.speedY = 8;
-            } else if (tank.dir == 2) { // влево
-                bullet.x = tank.x;
-                bullet.y = tank.y + 16;
-                bullet.speedX = -8; bullet.speedY = 0;
-            } else { // вправо
-                bullet.x = tank.x + 40;
-                bullet.y = tank.y + 16;
-                bullet.speedX = 8; bullet.speedY = 0;
-            }
+        if (currentMode === 'pvp' && p2 && collide({x: p1.x, y: p1.y, w: 40, h: 40}, {x: p2.x, y: p2.y, w: 40, h: 40})) {
+            tank.x = oldX;
+            tank.y = oldY;
         }
+    }
+    
+    // ========== СТРЕЛЬБА ==========
+    function shoot(tank, bullet, isP1) {
+        if (bullet.active) return;
+        if (isP1 && p1Delay > 0) return;
+        if (!isP1 && p2Delay > 0) return;
         
-        // ========== ОБНОВЛЕНИЕ ПУЛИ ИГРОКА ==========
-        function updateBullet() {
-            if (!bullet.active) return;
-            bullet.x += bullet.speedX;
-            bullet.y += bullet.speedY;
-            
-            // выход за границы
-            if (bullet.x < -50 || bullet.x > 850 || bullet.y < -50 || bullet.y > 650) {
+        if (isP1) p1Delay = 15;
+        else p2Delay = 15;
+        
+        bullet.active = true;
+        if (tank.dir === 0) {
+            bullet.x = tank.x + 16; bullet.y = tank.y;
+            bullet.speedX = 0; bullet.speedY = -8;
+        } else if (tank.dir === 1) {
+            bullet.x = tank.x + 16; bullet.y = tank.y + 40;
+            bullet.speedX = 0; bullet.speedY = 8;
+        } else if (tank.dir === 2) {
+            bullet.x = tank.x; bullet.y = tank.y + 16;
+            bullet.speedX = -8; bullet.speedY = 0;
+        } else {
+            bullet.x = tank.x + 40; bullet.y = tank.y + 16;
+            bullet.speedX = 8; bullet.speedY = 0;
+        }
+    }
+    
+    // ========== ОБНОВЛЕНИЕ ПУЛИ ==========
+    function updateBullet(bullet, targetHealthGetter, isP1Bullet) {
+        if (!bullet.active) return;
+        bullet.x += bullet.speedX;
+        bullet.y += bullet.speedY;
+        if (bullet.x < -50 || bullet.x > 850 || bullet.y < -50 || bullet.y > 650) {
+            bullet.active = false;
+            return;
+        }
+        let bulletRect = { x: bullet.x, y: bullet.y, w: 8, h: 8 };
+        
+        for (let i = 0; i < bricks.length; i++) {
+            if (collide(bulletRect, bricks[i])) {
+                bricks.splice(i, 1);
                 bullet.active = false;
+                if (isP1Bullet) { score += 10; updateUI(); }
                 return;
             }
-            
-            let bulletRect = { x: bullet.x, y: bullet.y, w: 8, h: 8 };
-            
-            // попадание в кирпичи
-            for (let i = 0; i < bricks.length; i++) {
-                if (collide(bulletRect, bricks[i])) {
-                    bricks.splice(i,1);
-                    bullet.active = false;
-                    score += 10;
-                    updateUI();
-                    return;
-                }
-            }
-            
-            // попадание во врагов
-            if (bullet.active) {
-                for (let i = 0; i < enemies.length; i++) {
-                    let e = enemies[i];
-                    if (collide(bulletRect, {x: e.x, y: e.y, w: e.w, h: e.h})) {
-                        enemies.splice(i,1);
-                        bullet.active = false;
-                        score += 100;
-                        updateUI();
-                        return;
-                    }
-                }
-            }
         }
         
-        // ========== ВРАГИ: ДВИЖЕНИЕ И СТРЕЛЬБА ==========
-        function updateEnemies() {
-            for (let i = 0; i < enemies.length; i++) {
-                let e = enemies[i];
-                e.moveTimer++;
-                e.shootTimer++;
-                
-                // смена направления
-                if (e.moveTimer > 50) {
-                    e.moveTimer = 0;
-                    e.dir = Math.floor(Math.random() * 4);
-                }
-                
-                let oldX = e.x, oldY = e.y;
-                // движение
-                if (e.dir == 0) e.y -= 2;
-                if (e.dir == 1) e.y += 2;
-                if (e.dir == 2) e.x -= 2;
-                if (e.dir == 3) e.x += 2;
-                
-                // границы
-                if (e.x < 2) e.x = 2;
-                if (e.x > 758) e.x = 758;
-                if (e.y < 2) e.y = 2;
-                if (e.y > 400) e.y = 400;
-                
-                // столкновение с кирпичами
-                for (let b of bricks) {
-                    if (collide({x: e.x, y: e.y, w: e.w, h: e.h}, b)) {
-                        e.x = oldX;
-                        e.y = oldY;
-                        break;
-                    }
-                }
-                
-                // СТРЕЛЬБА ВРАГА
-                if (e.shootTimer > 40) {
-                    e.shootTimer = 0;
-                    let eb = {
-                        x: 0, y: 0, w: 8, h: 8,
-                        speedX: 0, speedY: 0,
-                        active: true
-                    };
-                    if (e.dir == 0) {
-                        eb.x = e.x + 16;
-                        eb.y = e.y;
-                        eb.speedX = 0; eb.speedY = -6;
-                    } else if (e.dir == 1) {
-                        eb.x = e.x + 16;
-                        eb.y = e.y + 40;
-                        eb.speedX = 0; eb.speedY = 6;
-                    } else if (e.dir == 2) {
-                        eb.x = e.x;
-                        eb.y = e.y + 16;
-                        eb.speedX = -6; eb.speedY = 0;
-                    } else {
-                        eb.x = e.x + 40;
-                        eb.y = e.y + 16;
-                        eb.speedX = 6; eb.speedY = 0;
-                    }
-                    enemyBullets.push(eb);
-                }
-            }
+        // Попадание в игрока 2 (PVP)
+        if (currentMode === 'pvp' && p2 && collide(bulletRect, {x: p2.x, y: p2.y, w: 40, h: 40})) {
+            p2.health--;
+            bullet.active = false;
+            if (isP1Bullet) { score += 50; updateUI(); }
+            if (p2.health <= 0) { score += 200; updateUI(); gameOver = true; }
+            return;
         }
         
-        // ========== ОБНОВЛЕНИЕ ПУЛЬ ВРАГОВ ==========
-        function updateEnemyBullets() {
-            for (let i = 0; i < enemyBullets.length; i++) {
-                let eb = enemyBullets[i];
-                eb.x += eb.speedX;
-                eb.y += eb.speedY;
+        // Попадание в ботов
+        for (let i = 0; i < enemies.length; i++) {
+            if (collide(bulletRect, {x: enemies[i].x, y: enemies[i].y, w: 40, h: 40})) {
+                enemies.splice(i, 1);
+                bullet.active = false;
+                if (isP1Bullet) { score += 100; updateUI(); }
+                return;
+            }
+        }
+    }
+    
+    // ========== БОТЫ ==========
+    function updateEnemies() {
+        for (let i = 0; i < enemies.length; i++) {
+            let e = enemies[i];
+            e.moveTimer++;
+            e.shootTimer++;
+            if (e.moveTimer > 50) { e.moveTimer = 0; e.dir = Math.floor(Math.random() * 4); }
+            let oldX = e.x, oldY = e.y;
+            if (e.dir === 0) e.y -= 2;
+            if (e.dir === 1) e.y += 2;
+            if (e.dir === 2) e.x -= 2;
+            if (e.dir === 3) e.x += 2;
+            if (e.x < 2) e.x = 2;
+            if (e.x > 758) e.x = 758;
+            if (e.y < 2) e.y = 2;
+            if (e.y > 400) e.y = 400;
+            for (let b of bricks) {
+                if (collide({x: e.x, y: e.y, w: 40, h: 40}, b)) { e.x = oldX; e.y = oldY; break; }
+            }
+            if (e.shootTimer > 45) {
+                e.shootTimer = 0;
+                let eb = { x: 0, y: 0, w: 8, h: 8, speedX: 0, speedY: 0, active: true };
+                if (e.dir === 0) { eb.x = e.x+16; eb.y = e.y; eb.speedX = 0; eb.speedY = -6; }
+                else if (e.dir === 1) { eb.x = e.x+16; eb.y = e.y+40; eb.speedX = 0; eb.speedY = 6; }
+                else if (e.dir === 2) { eb.x = e.x; eb.y = e.y+16; eb.speedX = -6; eb.speedY = 0; }
+                else { eb.x = e.x+40; eb.y = e.y+16; eb.speedX = 6; eb.speedY = 0; }
                 
-                if (eb.x < -50 || eb.x > 850 || eb.y < -50 || eb.y > 650) {
-                    enemyBullets.splice(i,1);
-                    i--;
-                    continue;
-                }
-                
-                let bulletRect = { x: eb.x, y: eb.y, w: eb.w, h: eb.h };
-                let tankRect = { x: tank.x, y: tank.y, w: tank.w, h: tank.h };
-                
-                // попадание в игрока
-                if (collide(bulletRect, tankRect)) {
-                    health--;
+                // Пуля бота в игрока
+                let bulletRect = { x: eb.x, y: eb.y, w: 8, h: 8 };
+                if (collide(bulletRect, {x: p1.x, y: p1.y, w: 40, h: 40})) {
+                    p1.health--;
                     updateUI();
-                    enemyBullets.splice(i,1);
-                    i--;
-                    if (health <= 0) {
-                        gameOver = true;
-                    }
-                    continue;
+                    if (p1.health <= 0) gameOver = true;
                 }
-                
-                // попадание в кирпичи
                 for (let j = 0; j < bricks.length; j++) {
-                    if (collide(bulletRect, bricks[j])) {
-                        bricks.splice(j,1);
-                        enemyBullets.splice(i,1);
-                        i--;
-                        break;
-                    }
+                    if (collide(bulletRect, bricks[j])) { bricks.splice(j, 1); break; }
                 }
             }
         }
-        
-        // ========== СПАВН ВРАГОВ (если все мертвы) ==========
-        function respawnEnemies() {
-            if (enemies.length === 0 && !gameOver) {
-                for (let i = 0; i < 3; i++) {
-                    enemies.push({
-                        x: 100 + i * 250, y: 80,
-                        w: 40, h: 40,
-                        dir: 1,
-                        moveTimer: 0,
-                        shootTimer: Math.floor(Math.random() * 50)
-                    });
-                }
+        if (enemies.length === 0 && !gameOver && (currentMode === 'bots' || currentMode === 'ctf')) {
+            for (let i = 0; i < 3; i++) {
+                enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
             }
         }
-        
-        // ========== ОСНОВНОЕ ОБНОВЛЕНИЕ (ЛОГИКА) ==========
-        function update() {
-            if (gameOver) return;
-            if (health <= 0) {
-                gameOver = true;
-                return;
+    }
+    
+    // ========== CTF МЕХАНИКА ==========
+    function updateCTF() {
+        if (currentMode !== 'ctf') return;
+        let flagRect = { x: flag.x, y: flag.y, w: flag.w, h: flag.h };
+        let tankRect = { x: p1.x, y: p1.y, w: 40, h: 40 };
+        if (!flag.captured && collide(tankRect, flagRect)) {
+            flag.captured = true;
+            flag.carrier = 'player';
+            score += 150;
+            updateUI();
+        }
+        if (flag.captured && flag.carrier === 'player') {
+            let baseRect = { x: 50, y: 520, w: 30, h: 30 };
+            if (collide(tankRect, baseRect)) {
+                score += 500;
+                updateUI();
+                flag.captured = false;
+                flag.carrier = null;
+                flag.x = 700;
+                flag.y = 80;
+            } else {
+                flag.x = p1.x + 6;
+                flag.y = p1.y + 6;
             }
-            
-            // ---------- управление ----------
-            if (keys.ArrowLeft) moveTank(-4, 0, 2);
-            if (keys.ArrowRight) moveTank(4, 0, 3);
-            if (keys.ArrowUp) moveTank(0, -4, 0);
-            if (keys.ArrowDown) moveTank(0, 4, 1);
-            
-            // перезарядка выстрела
-            if (shootDelay > 0) shootDelay--;
-            if (keys.Space) shoot();
-            
-            // обновление пули игрока
-            updateBullet();
-            
-            // враги
+        }
+    }
+    
+   
+    function updateGame() {
+        if (gameOver || p1.health <= 0) return;
+        
+        if (keys.left) moveTank(p1, -4, 0, 2, true);
+        if (keys.right) moveTank(p1, 4, 0, 3, true);
+        if (keys.up) moveTank(p1, 0, -4, 0, true);
+        if (keys.down) moveTank(p1, 0, 4, 1, true);
+        
+        if (p1Delay > 0) p1Delay--;
+        if (keys.fire && !p1Bullet.active && p1Delay === 0) shoot(p1, p1Bullet, true);
+        updateBullet(p1Bullet, null, true);
+        
+        // PVP режим
+        if (currentMode === 'pvp' && p2) {
+            if (keysP2.left) moveTank(p2, -4, 0, 2, false);
+            if (keysP2.right) moveTank(p2, 4, 0, 3, false);
+            if (keysP2.up) moveTank(p2, 0, -4, 0, false);
+            if (keysP2.down) moveTank(p2, 0, 4, 1, false);
+            if (p2Delay > 0) p2Delay--;
+            if (keysP2.fire && !p2Bullet.active && p2Delay === 0) shoot(p2, p2Bullet, false);
+            updateBullet(p2Bullet, null, false);
+        }
+        
+        if (currentMode === 'bots' || currentMode === 'ctf') {
             updateEnemies();
-            
-            // пули врагов
-            updateEnemyBullets();
-            
-            // респавн волн
-            respawnEnemies();
         }
         
-        // ========== ОТРИСОВКА ==========
-        function draw() {
-            ctx.clearRect(0, 0, 800, 600);
-            
-            // фон (земля)
-            ctx.fillStyle = '#2d2a24';
-            ctx.fillRect(0,0,800,600);
-            ctx.fillStyle = '#49432e';
-            for(let i=0;i<300;i++) ctx.fillRect((i*131)%800, (i*97)%600, 3, 3);
-            
-            // кирпичи
-            for(let b of bricks) {
-                ctx.fillStyle = '#b87c3a';
-                ctx.fillRect(b.x, b.y, b.w, b.h);
-                ctx.fillStyle = '#8b5a2b';
-                ctx.fillRect(b.x+4, b.y+4, b.w-8, b.h-8);
-                ctx.fillStyle = '#e6a155';
-                ctx.fillRect(b.x+2, b.y+2, b.w-4, 5);
-            }
-            
-            // танк игрока
-            ctx.fillStyle = '#4f9e32';
-            ctx.fillRect(tank.x, tank.y, tank.w, tank.h);
-            ctx.fillStyle = '#32781e';
-            ctx.fillRect(tank.x+6, tank.y+6, tank.w-12, tank.h-12);
-            ctx.fillStyle = '#f5d742';
-            let cx = tank.x + tank.w/2;
-            let cy = tank.y + tank.h/2;
-            if (tank.dir === 0) ctx.fillRect(cx-4, tank.y-8, 8, 12);
-            else if (tank.dir === 1) ctx.fillRect(cx-4, tank.y+tank.h-4, 8, 12);
-            else if (tank.dir === 2) ctx.fillRect(tank.x-8, cy-4, 12, 8);
-            else ctx.fillRect(tank.x+tank.w-4, cy-4, 12, 8);
-            
-            // враги
-            for(let e of enemies) {
-                ctx.fillStyle = '#bd6a32';
-                ctx.fillRect(e.x, e.y, e.w, e.h);
-                ctx.fillStyle = '#87461d';
-                ctx.fillRect(e.x+5, e.y+5, e.w-10, e.h-10);
-                ctx.fillStyle = '#d17e42';
-                let ex = e.x + e.w/2;
-                let ey = e.y + e.h/2;
-                if (e.dir === 0) ctx.fillRect(ex-3, e.y-6, 6, 10);
-                else if (e.dir === 1) ctx.fillRect(ex-3, e.y+e.h-4, 6, 10);
-                else if (e.dir === 2) ctx.fillRect(e.x-6, ey-3, 10, 6);
-                else ctx.fillRect(e.x+e.w-4, ey-3, 10, 6);
-            }
-            
-            // пуля игрока
-            if(bullet.active) {
+        if (currentMode === 'ctf') updateCTF();
+    }
+    
+   
+    function draw() {
+        ctx.clearRect(0, 0, 800, 600);
+        ctx.fillStyle = '#2d2a24';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        for (let b of bricks) {
+            ctx.fillStyle = '#b87c3a';
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.fillStyle = '#e6a155';
+            ctx.fillRect(b.x+2, b.y+2, b.w-4, 5);
+        }
+        
+        // Флаг
+        if (currentMode === 'ctf') {
+            if (!flag.captured || flag.carrier !== 'player') {
+                ctx.fillStyle = '#dc3c2a';
+                ctx.fillRect(flag.x, flag.y, flag.w, flag.h);
                 ctx.fillStyle = '#ffcc44';
-                ctx.fillRect(bullet.x, bullet.y, 8, 8);
-                ctx.fillStyle = '#ffaa22';
-                ctx.fillRect(bullet.x+2, bullet.y+2, 4, 4);
+                ctx.font = 'bold 20px monospace';
+                ctx.fillText('🏁', flag.x+5, flag.y+22);
             }
-            
-            // пули врагов
-            for(let eb of enemyBullets) {
-                ctx.fillStyle = '#ff6644';
-                ctx.fillRect(eb.x, eb.y, eb.w, eb.h);
-                ctx.fillStyle = '#ffaa77';
-                ctx.fillRect(eb.x+2, eb.y+2, 4, 4);
-            }
-            
-            // GAME OVER
-            if(gameOver || health <= 0) {
-                ctx.font = 'bold 46monospace';
-                ctx.fillStyle = '#ddbb88';
-                ctx.shadowBlur = 0;
-                ctx.fillText('GAME OVER', 250, 280);
-                ctx.font = '18monospace';
-                ctx.fillStyle = '#bfa56a';
-                ctx.fillText('нажми R', 360, 350);
-            }
-            
-            // мини-HUD на поле
-            ctx.font = 'bold 18monospace';
-            ctx.fillStyle = '#f7ecc7';
-            ctx.fillText('❤️ '+health, 20, 50);
-            ctx.fillText('⭐ '+score, 110, 50);
+            ctx.fillStyle = '#88aa44';
+            ctx.fillRect(50, 520, 30, 30);
+            ctx.fillStyle = 'gold';
+            ctx.fillText('🏠', 57, 542);
         }
         
-        // ========== КЛАВИАТУРА ==========
-        function keydownHandler(e) {
-            let key = e.key;
-            if (key === 'ArrowLeft') keys.ArrowLeft = true;
-            if (key === 'ArrowRight') keys.ArrowRight = true;
-            if (key === 'ArrowUp') keys.ArrowUp = true;
-            if (key === 'ArrowDown') keys.ArrowDown = true;
-            if (key === ' ' || key === 'Space') {
-                keys.Space = true;
-                e.preventDefault();
-            }
-            if (key === 'r' || key === 'R') {
-                restartGame();
-                e.preventDefault();
-            }
+        // Игрок 1
+        ctx.fillStyle = '#4f9e32';
+        ctx.fillRect(p1.x, p1.y, 40, 40);
+        ctx.fillStyle = '#f5d742';
+        let cx = p1.x + 20, cy = p1.y + 20;
+        if (p1.dir === 0) ctx.fillRect(cx-4, p1.y-8, 8, 12);
+        else if (p1.dir === 1) ctx.fillRect(cx-4, p1.y+32, 8, 12);
+        else if (p1.dir === 2) ctx.fillRect(p1.x-8, cy-4, 12, 8);
+        else ctx.fillRect(p1.x+32, cy-4, 12, 8);
+        
+        // Игрок 2 (PVP)
+        if (currentMode === 'pvp' && p2) {
+            ctx.fillStyle = '#c44f2a';
+            ctx.fillRect(p2.x, p2.y, 40, 40);
+            ctx.fillStyle = '#ffaa66';
+            let ex = p2.x + 20, ey = p2.y + 20;
+            if (p2.dir === 0) ctx.fillRect(ex-3, p2.y-6, 6, 10);
+            else if (p2.dir === 1) ctx.fillRect(ex-3, p2.y+36, 6, 10);
+            else if (p2.dir === 2) ctx.fillRect(p2.x-6, ey-3, 10, 6);
+            else ctx.fillRect(p2.x+36, ey-3, 10, 6);
+            ctx.fillStyle = 'white';
+            ctx.font = '12px monospace';
+            ctx.fillText('❤️'+p2.health, p2.x+5, p2.y-5);
         }
         
-        function keyupHandler(e) {
-            let key = e.key;
-            if (key === 'ArrowLeft') keys.ArrowLeft = false;
-            if (key === 'ArrowRight') keys.ArrowRight = false;
-            if (key === 'ArrowUp') keys.ArrowUp = false;
-            if (key === 'ArrowDown') keys.ArrowDown = false;
-            if (key === ' ' || key === 'Space') {
-                keys.Space = false;
-                e.preventDefault();
+        // Боты
+        for (let e of enemies) {
+            ctx.fillStyle = '#bd6a32';
+            ctx.fillRect(e.x, e.y, 40, 40);
+            ctx.fillStyle = '#d17e42';
+            let ex = e.x + 20, ey = e.y + 20;
+            if (e.dir === 0) ctx.fillRect(ex-3, e.y-6, 6, 10);
+            else if (e.dir === 1) ctx.fillRect(ex-3, e.y+36, 6, 10);
+            else if (e.dir === 2) ctx.fillRect(e.x-6, ey-3, 10, 6);
+            else ctx.fillRect(e.x+36, ey-3, 10, 6);
+        }
+        
+        // Пули
+        if (p1Bullet.active) { ctx.fillStyle = '#ffcc44'; ctx.fillRect(p1Bullet.x, p1Bullet.y, 8, 8); }
+        if (currentMode === 'pvp' && p2Bullet.active) { ctx.fillStyle = '#ff6644'; ctx.fillRect(p2Bullet.x, p2Bullet.y, 8, 8); }
+        
+        if (gameOver || p1.health <= 0) {
+            ctx.font = 'bold 36px monospace';
+            ctx.fillStyle = '#f0d890';
+            ctx.fillText('GAME OVER', 280, 280);
+            ctx.font = '14px monospace';
+            ctx.fillText('Нажми R для рестарта', 310, 340);
+        }
+        
+        ctx.font = 'bold 18px monospace';
+        ctx.fillStyle = '#ecd67a';
+        ctx.fillText('❤️ '+p1.health, 18, 48);
+        ctx.fillText('⭐ '+score, 108, 48);
+    }
+    
+    // ========== ЗАПУСК РЕЖИМА ==========
+    function startMode(mode) {
+        currentMode = mode;
+        gameRunning = true;
+        let modeText = '';
+        let controlsText = '';
+        
+        if (mode === 'bots') { modeText = '🎮 ПРОТИВ БОТОВ'; controlsText = 'Стрелки + Пробел | R - рестарт'; }
+        if (mode === 'ctf') { modeText = '🏁 ЗАХВАТ ФЛАГА'; controlsText = 'Стрелки + Пробел | R - рестарт'; }
+        if (mode === 'pvp') { modeText = '⚔️ PVP 2 ИГРОКА'; controlsText = '🟢 ИГРОК 1: Стрелки + Пробел | 🔴 ИГРОК 2: WASD + X'; }
+        if (mode === 'online') { modeText = '🌐 СЕТЕВОЙ РЕЖИМ'; controlsText = 'Стрелки + Пробел | R - рестарт'; }
+        
+        document.getElementById('modeLabel').innerText = modeText;
+        document.getElementById('controlsHint').innerHTML = controlsText;
+        
+        restart();
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('game').style.display = 'flex';
+    }
+    
+    function exitToMenu() {
+        gameRunning = false;
+        document.getElementById('menu').style.display = 'flex';
+        document.getElementById('game').style.display = 'none';
+    }
+    
+    // ========== УПРАВЛЕНИЕ ==========
+    window.addEventListener('keydown', (e) => {
+        if (!gameRunning) return;
+        if (e.key === 'ArrowLeft') keys.left = true;
+        if (e.key === 'ArrowRight') keys.right = true;
+        if (e.key === 'ArrowUp') keys.up = true;
+        if (e.key === 'ArrowDown') keys.down = true;
+        if (e.key === ' ') { keys.fire = true; e.preventDefault(); }
+        
+        if (currentMode === 'pvp') {
+            if (e.key === 'a') keysP2.left = true;
+            if (e.key === 'd') keysP2.right = true;
+            if (e.key === 'w') keysP2.up = true;
+            if (e.key === 's') keysP2.down = true;
+            if (e.key === 'x') { keysP2.fire = true; e.preventDefault(); }
+        }
+        
+        if (e.key === 'r') restart();
+        if (e.key === 'Escape') exitToMenu();
+    });
+    
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft') keys.left = false;
+        if (e.key === 'ArrowRight') keys.right = false;
+        if (e.key === 'ArrowUp') keys.up = false;
+        if (e.key === 'ArrowDown') keys.down = false;
+        if (e.key === ' ') { keys.fire = false; }
+        
+        if (currentMode === 'pvp') {
+            if (e.key === 'a') keysP2.left = false;
+            if (e.key === 'd') keysP2.right = false;
+            if (e.key === 'w') keysP2.up = false;
+            if (e.key === 's') keysP2.down = false;
+            if (e.key === 'x') { keysP2.fire = false; }
+        }
+    });
+    
+    
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            let mode = btn.dataset.mode;
+            if (mode === 'online') {
+                alert('🌐 Сетевой режим:\n\n1. Скачай Node.js\n2. Запусти server.js\n3. Введи IP сервера\n\nПодробная инструкция в чате');
+            } else {
+                startMode(mode);
             }
-        }
-        
-        window.addEventListener('keydown', keydownHandler);
-        window.addEventListener('keyup', keyupHandler);
-        
-        // блокировка скролла при пробеле
-        canvas.addEventListener('keydown', (e) => { if(e.key === ' ') e.preventDefault(); });
-        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-        
-        // ========== ЗАПУСК ==========
-        restartGame();
-        
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        gameLoop();
-    })();
+        });
+    });
+    document.getElementById('backBtn').addEventListener('click', exitToMenu);
+    
+   
+    function gameLoop() {
+        if (gameRunning) { updateGame(); draw(); }
+        requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
 </script>
 </body>
 </html>

@@ -68,8 +68,7 @@
             touch-action: manipulation;
             display: inline-block;
         }
-        .map-btn:active { transform: scale(0.97); }
-        .map-btn.selected { background: #8a5aaa; color: #fff; box-shadow: 0 0 12px #cc88ff; }
+        .map-btn.selected { background: #8a5aaa; color: #fff; }
         .players-btn {
             background: #2a4a5a;
             border: 2px solid #6aaaaa;
@@ -85,7 +84,7 @@
             touch-action: manipulation;
             display: inline-block;
         }
-        .players-btn.selected { background: #4a8aaa; color: #fff; box-shadow: 0 0 12px #88ccff; }
+        .players-btn.selected { background: #4a8aaa; color: #fff; }
         .network-panel {
             background: #0e180c;
             border-radius: 20px;
@@ -152,39 +151,77 @@
             padding: 8px 12px;
             margin-top: 6px;
             flex-shrink: 0;
-            gap: 12px;
-            background: #1a1a14aa;
-            border-radius: 30px;
-            backdrop-filter: blur(4px);
+            gap: 20px;
         }
-        .dpad {
-            display: grid;
-            grid-template-columns: 70px 70px 70px;
-            grid-template-rows: 70px 70px 70px;
-            gap: 4px;
+        /* ========= КРЕСТОВИНА ========= */
+        .joystick {
+            position: relative;
+            width: 170px;
+            height: 170px;
             touch-action: none;
         }
-        .dpad-btn {
-            background: #2c241a;
-            border: 2px solid #b99a4a;
-            border-radius: 16px;
-            color: #ffeaac;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: none;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #5a3a1a;
+        .joystick-base {
+            position: absolute;
+            top: 0; left: 0;
+            width: 170px;
+            height: 170px;
+            background: radial-gradient(circle, #2c241a, #1a150e);
+            border: 3px solid #b99a4a;
+            border-radius: 50%;
+            box-shadow: inset 0 0 15px #000, 0 3px 0 #5a3a1a;
         }
-        .dpad-btn:active { transform: scale(0.93); box-shadow: 0 1px 0 #5a3a1a; }
-        .dpad-center {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            cursor: default;
-            color: #5a5a4a;
+        .joystick-cross {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
+        .joystick-cross::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 15%;
+            width: 70%; height: 4px;
+            background: #5a4a2a;
+            transform: translateY(-50%);
+            border-radius: 2px;
+        }
+        .joystick-cross::after {
+            content: '';
+            position: absolute;
+            left: 50%; top: 15%;
+            width: 4px; height: 70%;
+            background: #5a4a2a;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        .joystick-knob {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 65px;
+            height: 65px;
+            background: radial-gradient(circle, #d9a13b, #8b5a1a);
+            border: 3px solid #ffdd88;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+            transition: 0.05s linear;
+            pointer-events: none;
+        }
+        .joystick-arrow {
+            position: absolute;
+            color: #ffdd88;
+            font-size: 1rem;
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 0 0 3px black;
+        }
+        .joystick-arrow.up { top: 6px; left: 50%; transform: translateX(-50%); }
+        .joystick-arrow.down { bottom: 6px; left: 50%; transform: translateX(-50%); }
+        .joystick-arrow.left { left: 6px; top: 50%; transform: translateY(-50%); }
+        .joystick-arrow.right { right: 6px; top: 50%; transform: translateY(-50%); }
+        
         .action-buttons {
             display: flex;
             flex-direction: column;
@@ -195,9 +232,9 @@
             background: #8b2a1a;
             border: 3px solid #ff6644;
             border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            font-size: 2.2rem;
+            width: 90px;
+            height: 90px;
+            font-size: 2.4rem;
             color: white;
             display: flex;
             align-items: center;
@@ -211,46 +248,49 @@
             background: #3a5a3a;
             border: 2px solid #88aa44;
             border-radius: 30px;
-            padding: 6px 16px;
+            padding: 6px 14px;
             color: #ffeaac;
             font-size: 0.7rem;
             font-weight: bold;
             touch-action: none;
             cursor: pointer;
             font-family: monospace;
-            width: 80px;
+            width: 90px;
         }
         .small-btn:active { transform: scale(0.95); }
         .back-btn {
             background: #5a4a2e;
             border: 2px solid #b99a4a;
             border-radius: 30px;
-            padding: 6px 16px;
+            padding: 6px 14px;
             color: #ffeaac;
             font-size: 0.7rem;
             font-weight: bold;
             touch-action: none;
             cursor: pointer;
             font-family: monospace;
-            width: 80px;
+            width: 90px;
         }
         .back-btn:active { transform: scale(0.95); }
         @media (min-width: 860px) {
             .touch-controls { display: none; }
         }
         @media (max-width: 550px) {
-            .dpad { grid-template-columns: 55px 55px 55px; grid-template-rows: 55px 55px 55px; gap: 3px; }
-            .dpad-btn { font-size: 1.4rem; border-radius: 12px; }
-            .fire-btn { width: 65px; height: 65px; font-size: 1.8rem; }
-            .small-btn, .back-btn { width: 65px; font-size: 0.6rem; padding: 4px 10px; }
+            .joystick { width: 140px; height: 140px; }
+            .joystick-base { width: 140px; height: 140px; }
+            .joystick-knob { width: 55px; height: 55px; }
+            .fire-btn { width: 75px; height: 75px; font-size: 2rem; }
+            .small-btn, .back-btn { width: 75px; font-size: 0.6rem; padding: 4px 8px; }
             .info { font-size: 0.6rem; padding: 4px 10px; }
         }
         @media (max-width: 400px) {
-            .dpad { grid-template-columns: 44px 44px 44px; grid-template-rows: 44px 44px 44px; gap: 2px; }
-            .dpad-btn { font-size: 1rem; border-radius: 10px; }
-            .fire-btn { width: 55px; height: 55px; font-size: 1.4rem; }
-            .small-btn, .back-btn { width: 55px; font-size: 0.5rem; padding: 3px 6px; }
+            .joystick { width: 120px; height: 120px; }
+            .joystick-base { width: 120px; height: 120px; }
+            .joystick-knob { width: 45px; height: 45px; }
+            .fire-btn { width: 65px; height: 65px; font-size: 1.6rem; }
+            .small-btn, .back-btn { width: 65px; font-size: 0.5rem; }
             .info { font-size: 0.5rem; padding: 3px 8px; }
+            .touch-controls { padding: 4px 8px; gap: 10px; }
         }
         .hidden { display: none !important; }
     </style>
@@ -264,14 +304,14 @@
     <button class="mode-btn online" id="btnOnline" onclick="selectSource('online', this)">🌐 ПО СЕТИ (Hamachi)</button>
     
     <div id="offlineModes" style="display:none;">
-        <h2> Офлайн режим:</h2>
+        <h2>🎯 Офлайн режим:</h2>
         <button class="mode-btn bots" data-mode="bots" onclick="selectMode('bots', this)">🎮 ПРОТИВ БОТОВ</button>
         <button class="mode-btn ctf" data-mode="ctf" onclick="selectMode('ctf', this)">🏁 ЗАХВАТ ФЛАГА</button>
         <button class="mode-btn pvp" data-mode="pvp" onclick="selectMode('pvp', this)">⚔️ PVP 2 ИГРОКА</button>
     </div>
     
     <div id="onlineModes" style="display:none;">
-        <h2> Сетевой режим:</h2>
+        <h2>🎯 Сетевой режим:</h2>
         <button class="mode-btn bots" data-mode="bots" onclick="selectMode('bots', this)">🌐 ПРОТИВ БОТОВ</button>
         <button class="mode-btn ctf" data-mode="ctf" onclick="selectMode('ctf', this)">🌐 ЗАХВАТ ФЛАГА</button>
         <button class="mode-btn pvp" data-mode="pvp" onclick="selectMode('pvp', this)">🌐 PVP (все против всех)</button>
@@ -310,13 +350,17 @@
         <span id="playersLabel">👥 1</span>
     </div>
     <canvas id="canvas" width="800" height="600"></canvas>
+    
     <div class="touch-controls" id="touchControls">
-        <div class="dpad">
-            <div class="dpad-btn" id="btnUp">▲</div>
-            <div class="dpad-btn" id="btnLeft">◀</div>
-            <div class="dpad-btn dpad-center">+</div>
-            <div class="dpad-btn" id="btnRight">▶</div>
-            <div class="dpad-btn" id="btnDown">▼</div>
+        <!-- КРЕСТОВИНА (джойстик) -->
+        <div class="joystick" id="joystick">
+            <div class="joystick-base"></div>
+            <div class="joystick-cross"></div>
+            <div class="joystick-arrow up">▲</div>
+            <div class="joystick-arrow down">▼</div>
+            <div class="joystick-arrow left">◀</div>
+            <div class="joystick-arrow right">▶</div>
+            <div class="joystick-knob" id="joystickKnob"></div>
         </div>
         <div class="action-buttons">
             <button class="fire-btn" id="btnFire">💥</button>
@@ -358,6 +402,7 @@
     var p2Delay = 0;
     
     var enemies = [];
+    var enemyBullets = []; // пули ботов — теперь реально существуют
     var flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
     
     var keys = { left: false, right: false, up: false, down: false, fire: false };
@@ -427,8 +472,8 @@
         bricks = buildBricks();
         flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
         enemies = [];
+        enemyBullets = [];
         
-        // В офлайне ИЛИ в сетевом режиме "боты/флаг" спавним ботов
         if (currentMode === 'pvp' && gameSource === 'offline') {
             p2 = { x: 380, y: 80, w: 40, h: 40, dir: 1, health: 3 };
             p2Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
@@ -499,6 +544,7 @@
         }
     }
     
+    // ========= БОТЫ: стреляют И УБИВАЮТ =========
     function updateEnemies() {
         for (var i = 0; i < enemies.length; i++) {
             var e = enemies[i];
@@ -512,6 +558,7 @@
             for (var k = 0; k < bricks.length; k++) {
                 if (collide({x: e.x, y: e.y, w: 40, h: 40}, bricks[k])) { e.x = oldX; e.y = oldY; break; }
             }
+            // Боты стреляют
             if (e.shootTimer > 45) {
                 e.shootTimer = 0;
                 var eb = { x: 0, y: 0, w: 8, h: 8, speedX: 0, speedY: 0 };
@@ -519,19 +566,55 @@
                 else if (e.dir === 1) { eb.x = e.x+16; eb.y = e.y+40; eb.speedX = 0; eb.speedY = 6; }
                 else if (e.dir === 2) { eb.x = e.x; eb.y = e.y+16; eb.speedX = -6; eb.speedY = 0; }
                 else { eb.x = e.x+40; eb.y = e.y+16; eb.speedX = 6; eb.speedY = 0; }
-                var bulletRect = { x: eb.x, y: eb.y, w: 8, h: 8 };
-                if (collide(bulletRect, {x: p1.x, y: p1.y, w: 40, h: 40})) {
-                    p1.health--; updateUI();
-                    if (p1.health <= 0) gameOver = true;
-                }
-                for (var j = 0; j < bricks.length; j++) {
-                    if (collide(bulletRect, bricks[j])) { bricks.splice(j, 1); break; }
-                }
+                enemyBullets.push(eb);
             }
         }
+        // Респавн врагов
         if (enemies.length === 0 && !gameOver && (currentMode === 'bots' || currentMode === 'ctf')) {
             for (var i = 0; i < 3; i++) {
                 enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
+            }
+        }
+    }
+    
+    // ========= ПУЛИ БОТОВ ЛЕТЯТ И УБИВАЮТ =========
+    function updateEnemyBullets() {
+        for (var i = 0; i < enemyBullets.length; i++) {
+            var eb = enemyBullets[i];
+            eb.x += eb.speedX;
+            eb.y += eb.speedY;
+            if (eb.x < -50 || eb.x > 850 || eb.y < -50 || eb.y > 650) {
+                enemyBullets.splice(i, 1); i--; continue;
+            }
+            var bulletRect = { x: eb.x, y: eb.y, w: 8, h: 8 };
+            
+            // УБИВАЕТ ИГРОКА
+            if (collide(bulletRect, {x: p1.x, y: p1.y, w: 40, h: 40})) {
+                p1.health--;
+                updateUI();
+                enemyBullets.splice(i, 1);
+                i--;
+                if (p1.health <= 0) gameOver = true;
+                continue;
+            }
+            
+            // Убивает P2 в офлайн PVP
+            if (currentMode === 'pvp' && gameSource === 'offline' && p2 && collide(bulletRect, {x: p2.x, y: p2.y, w: 40, h: 40})) {
+                p2.health--;
+                enemyBullets.splice(i, 1);
+                i--;
+                if (p2.health <= 0) gameOver = true;
+                continue;
+            }
+            
+            // Ломает стены
+            for (var j = 0; j < bricks.length; j++) {
+                if (collide(bulletRect, bricks[j])) {
+                    bricks.splice(j, 1);
+                    enemyBullets.splice(i, 1);
+                    i--;
+                    break;
+                }
             }
         }
     }
@@ -562,13 +645,16 @@
     
     function updateGame() {
         if (gameOver || p1.health <= 0) { if (p1.health <= 0) gameOver = true; return; }
+        
         if (keys.left) moveTank(p1, -4, 0, 2);
         if (keys.right) moveTank(p1, 4, 0, 3);
         if (keys.up) moveTank(p1, 0, -4, 0);
         if (keys.down) moveTank(p1, 0, 4, 1);
+        
         if (p1Delay > 0) p1Delay--;
         if (keys.fire && !p1Bullet.active && p1Delay === 0) shoot(p1, p1Bullet, true);
         updateBullet(p1Bullet, true);
+        
         if (currentMode === 'pvp' && gameSource === 'offline' && p2) {
             if (keysP2.left) moveTank(p2, -4, 0, 2);
             if (keysP2.right) moveTank(p2, 4, 0, 3);
@@ -578,8 +664,14 @@
             if (keysP2.fire && !p2Bullet.active && p2Delay === 0) shoot(p2, p2Bullet, false);
             updateBullet(p2Bullet, false);
         }
-        if (currentMode === 'bots' || currentMode === 'ctf') updateEnemies();
+        
+        if (currentMode === 'bots' || currentMode === 'ctf') {
+            updateEnemies();
+            updateEnemyBullets();
+        }
+        
         if (currentMode === 'ctf') updateCTF();
+        
         if (gameSource === 'online' && ws && ws.readyState === WebSocket.OPEN) {
             var now = Date.now();
             if (now - lastSend > 50) { sendPosition(); lastSend = now; }
@@ -625,6 +717,7 @@
         else if (p1.dir === 1) ctx.fillRect(cx-4, p1.y+32, 8, 12);
         else if (p1.dir === 2) ctx.fillRect(p1.x-8, cy-4, 12, 8);
         else ctx.fillRect(p1.x+32, cy-4, 12, 8);
+        
         if (currentMode === 'pvp' && gameSource === 'offline' && p2) {
             ctx.fillStyle = '#c44f2a'; ctx.fillRect(p2.x, p2.y, 40, 40);
             ctx.fillStyle = '#ffaa66';
@@ -636,6 +729,7 @@
             ctx.fillStyle = 'white'; ctx.font = '11px monospace';
             ctx.fillText('❤️'+p2.health, p2.x+3, p2.y-5);
         }
+        
         for (var i = 0; i < enemies.length; i++) {
             var e = enemies[i];
             ctx.fillStyle = '#bd6a32'; ctx.fillRect(e.x, e.y, 40, 40);
@@ -646,29 +740,31 @@
             else if (e.dir === 2) ctx.fillRect(e.x-6, ey-3, 10, 6);
             else ctx.fillRect(e.x+36, ey-3, 10, 6);
         }
+        
         if (p1Bullet.active) { ctx.fillStyle = '#ffcc44'; ctx.fillRect(p1Bullet.x, p1Bullet.y, 8, 8); }
         if (currentMode === 'pvp' && gameSource === 'offline' && p2Bullet.active) { ctx.fillStyle = '#ff6644'; ctx.fillRect(p2Bullet.x, p2Bullet.y, 8, 8); }
+        
+        // Пули ботов — красные
+        for (var i = 0; i < enemyBullets.length; i++) {
+            var eb = enemyBullets[i];
+            ctx.fillStyle = '#ff4400';
+            ctx.fillRect(eb.x, eb.y, 8, 8);
+        }
+        
         if (gameOver || p1.health <= 0) {
             ctx.font = 'bold 36px monospace'; ctx.fillStyle = '#f0d890'; ctx.fillText('GAME OVER', 280, 280);
             ctx.font = '14px monospace'; ctx.fillStyle = '#c9aa6a'; ctx.fillText('R - рестарт', 340, 340);
         }
     }
     
-    // ========== ВЫБОР ==========
+    // ========= ВЫБОР =========
     window.selectSource = function(source, btn) {
-        selectedSource = source;
-        gameSource = source;
+        selectedSource = source; gameSource = source;
         var allBtns = document.querySelectorAll('.mode-btn');
         for (var i = 0; i < allBtns.length; i++) allBtns[i].classList.remove('selected');
         btn.classList.add('selected');
-        
-        if (source === 'offline') {
-            document.getElementById('offlineModes').style.display = 'block';
-            document.getElementById('onlineModes').style.display = 'none';
-        } else {
-            document.getElementById('offlineModes').style.display = 'none';
-            document.getElementById('onlineModes').style.display = 'block';
-        }
+        document.getElementById('offlineModes').style.display = source === 'offline' ? 'block' : 'none';
+        document.getElementById('onlineModes').style.display = source === 'online' ? 'block' : 'none';
     };
     
     window.selectMode = function(mode, btn) {
@@ -694,7 +790,7 @@
     };
     
     window.startSelectedMode = function() {
-        if (!selectedSource) { alert('Выбери способ игры!'); return; }
+        if (!selectedSource) { alert('Выбери способ!'); return; }
         if (!selectedMode) { alert('Выбери режим!'); return; }
         
         if (selectedSource === 'online') {
@@ -707,13 +803,11 @@
             gameSource = 'offline';
             maxPlayers = 1;
             gameRunning = true;
-            
             var modeText = '';
             if (selectedMode === 'bots') modeText = '🎮 БОТЫ';
             if (selectedMode === 'ctf') modeText = '🏁 ФЛАГ';
             if (selectedMode === 'pvp') modeText = '⚔️ PVP';
             document.getElementById('modeLabel').innerText = modeText;
-            
             restart();
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
@@ -723,9 +817,7 @@
     function connectToServer(ip, port) {
         var url = 'ws://' + ip + ':' + port;
         document.getElementById('netStatus').innerText = '🔄 Подключение...';
-        
         try { ws = new WebSocket(url); } catch(e) { document.getElementById('netStatus').innerText = '❌ Ошибка!'; return; }
-        
         ws.onopen = function() {
             document.getElementById('netStatus').innerText = '✅ Подключено!';
             currentMode = selectedMode;
@@ -733,19 +825,15 @@
             currentMap = selectedMap;
             maxPlayers = selectedPlayers;
             gameRunning = true;
-            
             var modeText = '';
             if (selectedMode === 'bots') modeText = '🌐 БОТЫ';
             if (selectedMode === 'ctf') modeText = '🌐 ФЛАГ';
             if (selectedMode === 'pvp') modeText = '🌐 PVP';
             document.getElementById('modeLabel').innerText = modeText;
-            
             restart();
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
-            document.getElementById('onlineStatus').innerText = '👥 Ожидание игроков...';
         };
-        
         ws.onmessage = function(event) {
             try {
                 var data = JSON.parse(event.data);
@@ -767,9 +855,8 @@
                 if (data.type === 'disconnect') { players.delete(data.playerId); updateUI(); }
             } catch(e) {}
         };
-        
         ws.onerror = function() { document.getElementById('netStatus').innerText = '❌ Ошибка!'; };
-        ws.onclose = function() { if (gameRunning) { document.getElementById('onlineStatus').innerText = '⚠️ Отключено!'; setTimeout(exitToMenu, 2000); } };
+        ws.onclose = function() { if (gameRunning) { setTimeout(exitToMenu, 2000); } };
     }
     
     function exitToMenu() {
@@ -813,37 +900,118 @@
         }
     });
     
-    function setupTouch() {
-        var btnUp = document.getElementById('btnUp'), btnDown = document.getElementById('btnDown');
-        var btnLeft = document.getElementById('btnLeft'), btnRight = document.getElementById('btnRight');
-        var btnFire = document.getElementById('btnFire'), btnRestart = document.getElementById('btnRestart');
-        var backBtn = document.getElementById('backBtn');
-        function attachButton(btn, onStart, onEnd) {
-            if (!btn) return;
-            btn.addEventListener('touchstart', function(e) { e.preventDefault(); onStart(); }, { passive: false });
-            btn.addEventListener('touchend', function(e) { e.preventDefault(); onEnd(); }, { passive: false });
-            btn.addEventListener('touchcancel', function(e) { e.preventDefault(); onEnd(); }, { passive: false });
-            btn.addEventListener('mousedown', function(e) { e.preventDefault(); onStart(); });
-            btn.addEventListener('mouseup', function(e) { e.preventDefault(); onEnd(); });
-            btn.addEventListener('mouseleave', function(e) { e.preventDefault(); onEnd(); });
+    // ========= ДЖОЙСТИК (КРЕСТОВИНА) =========
+    function setupJoystick() {
+        var joystick = document.getElementById('joystick');
+        var knob = document.getElementById('joystickKnob');
+        var active = false;
+        var touchId = null;
+        
+        function handleStart(e) {
+            e.preventDefault();
+            active = true;
+            if (e.changedTouches) touchId = e.changedTouches[0].identifier;
+            handleMove(e);
         }
-        attachButton(btnUp, function() { keys.up = true; }, function() { keys.up = false; });
-        attachButton(btnDown, function() { keys.down = true; }, function() { keys.down = false; });
-        attachButton(btnLeft, function() { keys.left = true; }, function() { keys.left = false; });
-        attachButton(btnRight, function() { keys.right = true; }, function() { keys.right = false; });
+        
+        function handleMove(e) {
+            if (!active) return;
+            e.preventDefault();
+            
+            var touch = null;
+            if (e.changedTouches && touchId !== null) {
+                for (var i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === touchId) {
+                        touch = e.changedTouches[i];
+                        break;
+                    }
+                }
+            } else if (e.touches && e.touches.length > 0) {
+                touch = e.touches[0];
+            } else if (e.clientX !== undefined) {
+                touch = e;
+            }
+            
+            if (!touch) return;
+            
+            var rect = joystick.getBoundingClientRect();
+            var centerX = rect.left + rect.width / 2;
+            var centerY = rect.top + rect.height / 2;
+            var dx = touch.clientX - centerX;
+            var dy = touch.clientY - centerY;
+            
+            var maxDist = rect.width / 2 - 15;
+            var dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > maxDist) {
+                dx = dx / dist * maxDist;
+                dy = dy / dist * maxDist;
+            }
+            
+            knob.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
+            
+            // Определяем направление (4 направления, как крестовина)
+            var threshold = maxDist * 0.3;
+            
+            // Сброс всех
+            keys.left = false;
+            keys.right = false;
+            keys.up = false;
+            keys.down = false;
+            
+            // Приоритет — более сильное отклонение
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > threshold) keys.right = true;
+                else if (dx < -threshold) keys.left = true;
+            } else {
+                if (dy > threshold) keys.down = true;
+                else if (dy < -threshold) keys.up = true;
+            }
+        }
+        
+        function handleEnd(e) {
+            e.preventDefault();
+            active = false;
+            touchId = null;
+            knob.style.transform = 'translate(-50%, -50%)';
+            keys.left = false;
+            keys.right = false;
+            keys.up = false;
+            keys.down = false;
+        }
+        
+        joystick.addEventListener('touchstart', handleStart, { passive: false });
+        joystick.addEventListener('touchmove', handleMove, { passive: false });
+        joystick.addEventListener('touchend', handleEnd, { passive: false });
+        joystick.addEventListener('touchcancel', handleEnd, { passive: false });
+        
+        joystick.addEventListener('mousedown', handleStart);
+        joystick.addEventListener('mousemove', function(e) { if (active) handleMove(e); });
+        joystick.addEventListener('mouseup', handleEnd);
+        joystick.addEventListener('mouseleave', handleEnd);
+    }
+    
+    function setupButtons() {
+        var btnFire = document.getElementById('btnFire');
+        var btnRestart = document.getElementById('btnRestart');
+        var backBtn = document.getElementById('backBtn');
+        
         btnFire.addEventListener('touchstart', function(e) { e.preventDefault(); keys.fire = true; }, { passive: false });
         btnFire.addEventListener('touchend', function(e) { e.preventDefault(); keys.fire = false; }, { passive: false });
         btnFire.addEventListener('touchcancel', function(e) { e.preventDefault(); keys.fire = false; }, { passive: false });
         btnFire.addEventListener('mousedown', function(e) { e.preventDefault(); keys.fire = true; });
         btnFire.addEventListener('mouseup', function(e) { e.preventDefault(); keys.fire = false; });
         btnFire.addEventListener('mouseleave', function(e) { e.preventDefault(); keys.fire = false; });
+        
         btnRestart.addEventListener('click', function(e) { e.preventDefault(); restart(); });
         btnRestart.addEventListener('touchstart', function(e) { e.preventDefault(); restart(); }, { passive: false });
+        
         backBtn.addEventListener('click', function(e) { e.preventDefault(); exitToMenu(); });
         backBtn.addEventListener('touchstart', function(e) { e.preventDefault(); exitToMenu(); }, { passive: false });
     }
     
-    setupTouch();
+    setupJoystick();
+    setupButtons();
     
     function gameLoop() {
         if (gameRunning) { updateGame(); draw(); }

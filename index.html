@@ -24,15 +24,15 @@
             background: #1e2a1c;
             border: 3px solid #e9b45e;
             border-radius: 32px;
-            padding: 20px;
+            padding: 18px;
             max-width: 480px;
             width: 92%;
             text-align: center;
             max-height: 95vh;
             overflow-y: auto;
         }
-        .menu h1 { font-size: 1.6rem; color: #f7e9c3; margin: 0 0 10px; }
-        .menu h2 { font-size: 0.95rem; color: #cfc68f; margin: 12px 0 6px; }
+        .menu h1 { font-size: 1.5rem; color: #f7e9c3; margin: 0 0 10px; }
+        .menu h2 { font-size: 0.9rem; color: #cfc68f; margin: 12px 0 5px; }
         .mode-btn {
             background: #2f3a28;
             border: none;
@@ -89,25 +89,25 @@
         .network-panel {
             background: #0e180c;
             border-radius: 20px;
-            padding: 15px;
-            margin-top: 10px;
+            padding: 12px;
+            margin-top: 8px;
         }
         .network-panel input {
             background: #2c2a1c;
             border: 2px solid #b99a4a;
-            padding: 10px;
+            padding: 9px;
             border-radius: 30px;
             font-family: monospace;
             color: #ffeaaf;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             width: 100%;
-            margin: 5px 0;
+            margin: 4px 0;
             text-align: center;
         }
         .status-text {
             color: #cfc68f;
             font-size: 0.7rem;
-            margin-top: 8px;
+            margin-top: 6px;
             text-align: center;
         }
         .game-container {
@@ -124,12 +124,12 @@
             justify-content: space-between;
             width: 100%;
             max-width: 800px;
-            padding: 6px 16px;
+            padding: 6px 14px;
             background: #1e1b14cc;
             border-radius: 30px;
             color: #f7ecc7;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             margin-bottom: 4px;
             flex-shrink: 0;
         }
@@ -257,22 +257,36 @@
 </head>
 <body>
 <div id="menu" class="menu">
-    <h1>⚡ TANK BRAWL ⚡</h1>
+    <h1> TANK BRAWL </h1>
     
-    <h2>🎮 Офлайн-режимы:</h2>
-    <button class="mode-btn bots" data-mode="bots" onclick="selectMode('bots', this)">🎮 ПРОТИВ БОТОВ</button>
-    <button class="mode-btn ctf" data-mode="ctf" onclick="selectMode('ctf', this)">🏁 ЗАХВАТ ФЛАГА</button>
-    <button class="mode-btn pvp" data-mode="pvp" onclick="selectMode('pvp', this)">⚔️ PVP 2 ИГРОКА</button>
+    <h2>🎮 Способ игры:</h2>
+    <button class="mode-btn bots" id="btnOffline" onclick="selectSource('offline', this)">🎮 ОФЛАЙН (на 1 ПК)</button>
+    <button class="mode-btn online" id="btnOnline" onclick="selectSource('online', this)">🌐 ПО СЕТИ (Hamachi)</button>
     
-    <h2>🌐 Сетевые режимы:</h2>
-    <button class="mode-btn online" data-mode="online" onclick="selectMode('online', this)">🌐 ПО СЕТИ (Hamachi)</button>
+    <div id="offlineModes" style="display:none;">
+        <h2> Офлайн режим:</h2>
+        <button class="mode-btn bots" data-mode="bots" onclick="selectMode('bots', this)">🎮 ПРОТИВ БОТОВ</button>
+        <button class="mode-btn ctf" data-mode="ctf" onclick="selectMode('ctf', this)">🏁 ЗАХВАТ ФЛАГА</button>
+        <button class="mode-btn pvp" data-mode="pvp" onclick="selectMode('pvp', this)">⚔️ PVP 2 ИГРОКА</button>
+    </div>
     
-    <div id="playersSection" style="display:none;">
-        <h2>👥 Игроков в сети:</h2>
+    <div id="onlineModes" style="display:none;">
+        <h2> Сетевой режим:</h2>
+        <button class="mode-btn bots" data-mode="bots" onclick="selectMode('bots', this)">🌐 ПРОТИВ БОТОВ</button>
+        <button class="mode-btn ctf" data-mode="ctf" onclick="selectMode('ctf', this)">🌐 ЗАХВАТ ФЛАГА</button>
+        <button class="mode-btn pvp" data-mode="pvp" onclick="selectMode('pvp', this)">🌐 PVP (все против всех)</button>
+        
+        <h2>👥 Игроков:</h2>
         <div>
-            <button class="players-btn" data-players="2" onclick="selectPlayers(2, this)">👥 2</button>
-            <button class="players-btn" data-players="4" onclick="selectPlayers(4, this)">👥 4</button>
-            <button class="players-btn" data-players="8" onclick="selectPlayers(8, this)">👥 8</button>
+            <button class="players-btn" data-players="2" onclick="selectPlayers(2, this)">2</button>
+            <button class="players-btn" data-players="4" onclick="selectPlayers(4, this)">4</button>
+            <button class="players-btn" data-players="8" onclick="selectPlayers(8, this)">8</button>
+        </div>
+        
+        <div id="networkPanel" class="network-panel">
+            <input type="text" id="serverIp" placeholder="Hamachi-IP (25.x.x.x)" value="25.0.0.1">
+            <input type="text" id="serverPort" placeholder="Порт" value="8080">
+            <div id="netStatus" class="status-text">Введи Hamachi-IP сервера</div>
         </div>
     </div>
     
@@ -284,13 +298,7 @@
         <button class="map-btn" data-map="4" onclick="selectMap(4, this)">🗺️ Крепость</button>
     </div>
     
-    <div id="networkPanel" class="network-panel hidden">
-        <input type="text" id="serverIp" placeholder="Hamachi-IP (25.x.x.x)" value="25.0.0.1">
-        <input type="text" id="serverPort" placeholder="Порт" value="8080">
-        <div id="netStatus" class="status-text">Введи Hamachi-IP и нажми начать</div>
-    </div>
-    
-    <button id="startBtn" class="mode-btn online" style="margin-top:15px; font-size:1.05rem;" onclick="startSelectedMode()">▶ НАЧАТЬ ИГРУ</button>
+    <button id="startBtn" class="mode-btn online" style="margin-top:12px; font-size:1rem;" onclick="startSelectedMode()">▶ НАЧАТЬ ИГРУ</button>
 </div>
 
 <div id="game" class="game-container hidden">
@@ -324,7 +332,7 @@
     var ctx = canvas.getContext('2d');
     
     var currentMode = null;
-    var onlineMode = null;
+    var gameSource = null;
     var gameRunning = false;
     var gameOver = false;
     var score = 0;
@@ -336,6 +344,7 @@
     var currentMap = 1;
     var maxPlayers = 2;
     
+    var selectedSource = null;
     var selectedMode = null;
     var selectedMap = 1;
     var selectedPlayers = 2;
@@ -354,7 +363,6 @@
     var keys = { left: false, right: false, up: false, down: false, fire: false };
     var keysP2 = { left: false, right: false, up: false, down: false, fire: false };
     
-    // ========== КАРТЫ ==========
     var MAPS = {
         1: { name: 'Классика', build: function() {
             var arr = [];
@@ -420,19 +428,14 @@
         flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
         enemies = [];
         
-        if (currentMode === 'pvp') {
+        // В офлайне ИЛИ в сетевом режиме "боты/флаг" спавним ботов
+        if (currentMode === 'pvp' && gameSource === 'offline') {
             p2 = { x: 380, y: 80, w: 40, h: 40, dir: 1, health: 3 };
             p2Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
             p2Delay = 0;
         } else if (currentMode === 'bots' || currentMode === 'ctf') {
             for (var i = 0; i < 3; i++) {
                 enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
-            }
-        } else if (currentMode === 'online') {
-            if (onlineMode === 'bots' || onlineMode === 'ctf') {
-                for (var i = 0; i < 3; i++) {
-                    enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
-                }
             }
         }
         updateUI();
@@ -447,9 +450,7 @@
         var oldX = tank.x, oldY = tank.y;
         tank.x = newX; tank.y = newY; tank.dir = newDir;
         for (var i = 0; i < bricks.length; i++) {
-            if (collide({x: tank.x, y: tank.y, w: 40, h: 40}, bricks[i])) {
-                tank.x = oldX; tank.y = oldY; break;
-            }
+            if (collide({x: tank.x, y: tank.y, w: 40, h: 40}, bricks[i])) { tank.x = oldX; tank.y = oldY; break; }
         }
     }
     
@@ -472,12 +473,9 @@
         if (bullet.x < -50 || bullet.x > 850 || bullet.y < -50 || bullet.y > 650) { bullet.active = false; return; }
         var bulletRect = { x: bullet.x, y: bullet.y, w: 8, h: 8 };
         for (var i = 0; i < bricks.length; i++) {
-            if (collide(bulletRect, bricks[i])) {
-                bricks.splice(i, 1); bullet.active = false;
-                if (isP1Bullet) { score += 10; updateUI(); } return;
-            }
+            if (collide(bulletRect, bricks[i])) { bricks.splice(i, 1); bullet.active = false; if (isP1Bullet) { score += 10; updateUI(); } return; }
         }
-        if (currentMode === 'pvp' && p2 && collide(bulletRect, {x: p2.x, y: p2.y, w: 40, h: 40})) {
+        if (currentMode === 'pvp' && gameSource === 'offline' && p2 && collide(bulletRect, {x: p2.x, y: p2.y, w: 40, h: 40})) {
             p2.health--; bullet.active = false;
             if (isP1Bullet) { score += 50; updateUI(); }
             if (p2.health <= 0) { score += 200; updateUI(); gameOver = true; }
@@ -531,7 +529,7 @@
                 }
             }
         }
-        if (enemies.length === 0 && !gameOver && (currentMode === 'bots' || currentMode === 'ctf' || (currentMode === 'online' && (onlineMode === 'bots' || onlineMode === 'ctf')))) {
+        if (enemies.length === 0 && !gameOver && (currentMode === 'bots' || currentMode === 'ctf')) {
             for (var i = 0; i < 3; i++) {
                 enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
             }
@@ -539,7 +537,7 @@
     }
     
     function updateCTF() {
-        if (currentMode !== 'ctf' && !(currentMode === 'online' && onlineMode === 'ctf')) return;
+        if (currentMode !== 'ctf') return;
         var flagRect = { x: flag.x, y: flag.y, w: flag.w, h: flag.h };
         var tankRect = { x: p1.x, y: p1.y, w: 40, h: 40 };
         if (!flag.captured && collide(tankRect, flagRect)) {
@@ -571,7 +569,7 @@
         if (p1Delay > 0) p1Delay--;
         if (keys.fire && !p1Bullet.active && p1Delay === 0) shoot(p1, p1Bullet, true);
         updateBullet(p1Bullet, true);
-        if (currentMode === 'pvp' && p2) {
+        if (currentMode === 'pvp' && gameSource === 'offline' && p2) {
             if (keysP2.left) moveTank(p2, -4, 0, 2);
             if (keysP2.right) moveTank(p2, 4, 0, 3);
             if (keysP2.up) moveTank(p2, 0, -4, 0);
@@ -580,9 +578,9 @@
             if (keysP2.fire && !p2Bullet.active && p2Delay === 0) shoot(p2, p2Bullet, false);
             updateBullet(p2Bullet, false);
         }
-        if (currentMode === 'bots' || currentMode === 'ctf' || (currentMode === 'online' && (onlineMode === 'bots' || onlineMode === 'ctf'))) updateEnemies();
-        if (currentMode === 'ctf' || (currentMode === 'online' && onlineMode === 'ctf')) updateCTF();
-        if (currentMode === 'online' && ws && ws.readyState === WebSocket.OPEN) {
+        if (currentMode === 'bots' || currentMode === 'ctf') updateEnemies();
+        if (currentMode === 'ctf') updateCTF();
+        if (gameSource === 'online' && ws && ws.readyState === WebSocket.OPEN) {
             var now = Date.now();
             if (now - lastSend > 50) { sendPosition(); lastSend = now; }
         }
@@ -596,7 +594,7 @@
             ctx.fillStyle = '#b87c3a'; ctx.fillRect(b.x, b.y, b.w, b.h);
             ctx.fillStyle = '#e6a155'; ctx.fillRect(b.x+2, b.y+2, b.w-4, 5);
         }
-        if (currentMode === 'ctf' || (currentMode === 'online' && onlineMode === 'ctf')) {
+        if (currentMode === 'ctf') {
             if (!flag.captured || flag.carrier !== 'player') {
                 ctx.fillStyle = '#dc3c2a'; ctx.fillRect(flag.x, flag.y, flag.w, flag.h);
                 ctx.fillStyle = '#ffcc44'; ctx.font = 'bold 20px monospace'; ctx.fillText('🏁', flag.x+5, flag.y+22);
@@ -627,7 +625,7 @@
         else if (p1.dir === 1) ctx.fillRect(cx-4, p1.y+32, 8, 12);
         else if (p1.dir === 2) ctx.fillRect(p1.x-8, cy-4, 12, 8);
         else ctx.fillRect(p1.x+32, cy-4, 12, 8);
-        if (currentMode === 'pvp' && p2) {
+        if (currentMode === 'pvp' && gameSource === 'offline' && p2) {
             ctx.fillStyle = '#c44f2a'; ctx.fillRect(p2.x, p2.y, 40, 40);
             ctx.fillStyle = '#ffaa66';
             var ex = p2.x + 20, ey = p2.y + 20;
@@ -649,25 +647,36 @@
             else ctx.fillRect(e.x+36, ey-3, 10, 6);
         }
         if (p1Bullet.active) { ctx.fillStyle = '#ffcc44'; ctx.fillRect(p1Bullet.x, p1Bullet.y, 8, 8); }
-        if (currentMode === 'pvp' && p2Bullet.active) { ctx.fillStyle = '#ff6644'; ctx.fillRect(p2Bullet.x, p2Bullet.y, 8, 8); }
+        if (currentMode === 'pvp' && gameSource === 'offline' && p2Bullet.active) { ctx.fillStyle = '#ff6644'; ctx.fillRect(p2Bullet.x, p2Bullet.y, 8, 8); }
         if (gameOver || p1.health <= 0) {
             ctx.font = 'bold 36px monospace'; ctx.fillStyle = '#f0d890'; ctx.fillText('GAME OVER', 280, 280);
             ctx.font = '14px monospace'; ctx.fillStyle = '#c9aa6a'; ctx.fillText('R - рестарт', 340, 340);
         }
     }
     
-    window.selectMode = function(mode, btn) {
-        selectedMode = mode;
+    // ========== ВЫБОР ==========
+    window.selectSource = function(source, btn) {
+        selectedSource = source;
+        gameSource = source;
         var allBtns = document.querySelectorAll('.mode-btn');
         for (var i = 0; i < allBtns.length; i++) allBtns[i].classList.remove('selected');
         btn.classList.add('selected');
-        if (mode === 'online') {
-            document.getElementById('networkPanel').classList.remove('hidden');
-            document.getElementById('playersSection').style.display = 'block';
+        
+        if (source === 'offline') {
+            document.getElementById('offlineModes').style.display = 'block';
+            document.getElementById('onlineModes').style.display = 'none';
         } else {
-            document.getElementById('networkPanel').classList.add('hidden');
-            document.getElementById('playersSection').style.display = 'none';
+            document.getElementById('offlineModes').style.display = 'none';
+            document.getElementById('onlineModes').style.display = 'block';
         }
+    };
+    
+    window.selectMode = function(mode, btn) {
+        selectedMode = mode;
+        var container = (selectedSource === 'offline') ? 'offlineModes' : 'onlineModes';
+        var allBtns = document.getElementById(container).querySelectorAll('.mode-btn');
+        for (var i = 0; i < allBtns.length; i++) allBtns[i].classList.remove('selected');
+        btn.classList.add('selected');
     };
     
     window.selectMap = function(mapNum, btn) {
@@ -685,21 +694,26 @@
     };
     
     window.startSelectedMode = function() {
+        if (!selectedSource) { alert('Выбери способ игры!'); return; }
         if (!selectedMode) { alert('Выбери режим!'); return; }
-        if (selectedMode === 'online') {
+        
+        if (selectedSource === 'online') {
             var ip = document.getElementById('serverIp').value;
             var port = document.getElementById('serverPort').value;
             connectToServer(ip, port);
         } else {
             currentMode = selectedMode;
             currentMap = selectedMap;
+            gameSource = 'offline';
             maxPlayers = 1;
             gameRunning = true;
+            
             var modeText = '';
             if (selectedMode === 'bots') modeText = '🎮 БОТЫ';
             if (selectedMode === 'ctf') modeText = '🏁 ФЛАГ';
             if (selectedMode === 'pvp') modeText = '⚔️ PVP';
             document.getElementById('modeLabel').innerText = modeText;
+            
             restart();
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
@@ -709,20 +723,29 @@
     function connectToServer(ip, port) {
         var url = 'ws://' + ip + ':' + port;
         document.getElementById('netStatus').innerText = '🔄 Подключение...';
+        
         try { ws = new WebSocket(url); } catch(e) { document.getElementById('netStatus').innerText = '❌ Ошибка!'; return; }
+        
         ws.onopen = function() {
             document.getElementById('netStatus').innerText = '✅ Подключено!';
-            currentMode = 'online';
-            onlineMode = 'multiplayer';
+            currentMode = selectedMode;
+            gameSource = 'online';
             currentMap = selectedMap;
             maxPlayers = selectedPlayers;
             gameRunning = true;
-            document.getElementById('modeLabel').innerText = '🌐 СЕТЬ';
+            
+            var modeText = '';
+            if (selectedMode === 'bots') modeText = '🌐 БОТЫ';
+            if (selectedMode === 'ctf') modeText = '🌐 ФЛАГ';
+            if (selectedMode === 'pvp') modeText = '🌐 PVP';
+            document.getElementById('modeLabel').innerText = modeText;
+            
             restart();
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
             document.getElementById('onlineStatus').innerText = '👥 Ожидание игроков...';
         };
+        
         ws.onmessage = function(event) {
             try {
                 var data = JSON.parse(event.data);
@@ -744,6 +767,7 @@
                 if (data.type === 'disconnect') { players.delete(data.playerId); updateUI(); }
             } catch(e) {}
         };
+        
         ws.onerror = function() { document.getElementById('netStatus').innerText = '❌ Ошибка!'; };
         ws.onclose = function() { if (gameRunning) { document.getElementById('onlineStatus').innerText = '⚠️ Отключено!'; setTimeout(exitToMenu, 2000); } };
     }
@@ -754,7 +778,6 @@
         players.clear();
         document.getElementById('menu').classList.remove('hidden');
         document.getElementById('game').classList.add('hidden');
-        document.getElementById('networkPanel').classList.add('hidden');
     }
     
     document.addEventListener('keydown', function(e) {
@@ -764,7 +787,7 @@
         if (e.key === 'ArrowUp') keys.up = true;
         if (e.key === 'ArrowDown') keys.down = true;
         if (e.key === ' ') { keys.fire = true; e.preventDefault(); }
-        if (currentMode === 'pvp') {
+        if (currentMode === 'pvp' && gameSource === 'offline') {
             if (e.key === 'a') keysP2.left = true;
             if (e.key === 'd') keysP2.right = true;
             if (e.key === 'w') keysP2.up = true;
@@ -781,7 +804,7 @@
         if (e.key === 'ArrowUp') keys.up = false;
         if (e.key === 'ArrowDown') keys.down = false;
         if (e.key === ' ') { keys.fire = false; }
-        if (currentMode === 'pvp') {
+        if (currentMode === 'pvp' && gameSource === 'offline') {
             if (e.key === 'a') keysP2.left = false;
             if (e.key === 'd') keysP2.right = false;
             if (e.key === 'w') keysP2.up = false;

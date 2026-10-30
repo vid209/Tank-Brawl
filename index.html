@@ -317,7 +317,9 @@
         }
         .hidden { display: none !important; }
     </style>
-</head><body>
+</head>
+</head>
+<body>
 <div id="menu" class="menu">
     <h1> TANK BRAWL </h1>
     
@@ -393,86 +395,6 @@
     </div>
     <div id="onlineStatus" class="status-text" style="margin-top:4px;color:#88aa44;"></div>
 </div>
-<script>
-    var canvas = document.getElementById('canvas');
-    var ctx = canvas.getContext('2d');
-    
-    var currentMode = null;
-    var gameSource = null;
-    var gameRunning = false;
-    var gameOver = false;
-    var score = 0;
-    var bricks = [];
-    var ws = null;
-    var myId = null;
-    var players = new Map();
-    var lastSend = 0;
-    var currentMap = 1;
-    var maxPlayers = 2;
-    var connectTimeout = null;
-    
-    var selectedSource = null;
-    var selectedMode = null;
-    var selectedMap = 1;
-    var selectedPlayers = 2;
-    
-    var p1 = { x: 380, y: 520, w: 40, h: 40, dir: 0, health: 3 };
-    var p1Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
-    var p1Delay = 0;
-    
-    var p2 = null;
-    var p2Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
-    var p2Delay = 0;
-    
-    var enemies = [];
-    var enemyBullets = [];
-    var flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
-    
-    var keys = { left: false, right: false, up: false, down: false, fire: false };
-    var keysP2 = { left: false, right: false, up: false, down: false, fire: false };
-    
-    var MAPS = {
-        1: { name: 'Классика', build: function() {
-            var arr = [];
-            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
-            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
-            for (var i = 3; i < 18; i += 4) for (var j = 4; j < 10; j += 2) arr.push({ x: i * 42, y: j * 42, w: 38, h: 38 });
-            return arr;
-        }},
-        2: { name: 'Battle City', build: function() {
-            var arr = [];
-            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
-            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
-            for (var i = 6; i <= 13; i++) { arr.push({ x: i * 42, y: 6 * 42, w: 38, h: 38 }); arr.push({ x: i * 42, y: 8 * 42, w: 38, h: 38 }); }
-            for (var j = 3; j <= 6; j++) { arr.push({ x: 9 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 10 * 42, y: j * 42, w: 38, h: 38 }); }
-            for (var j = 8; j <= 11; j++) { arr.push({ x: 9 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 10 * 42, y: j * 42, w: 38, h: 38 }); }
-            arr.push({ x: 3*42, y: 3*42, w: 38, h: 38 }); arr.push({ x: 16*42, y: 3*42, w: 38, h: 38 });
-            arr.push({ x: 3*42, y: 11*42, w: 38, h: 38 }); arr.push({ x: 16*42, y: 11*42, w: 38, h: 38 });
-            return arr;
-        }},
-        3: { name: 'Лабиринт', build: function() {
-            var arr = [];
-            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
-            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
-            for (var j = 2; j <= 6; j++) { arr.push({ x: 4 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 15 * 42, y: j * 42, w: 38, h: 38 }); }
-            for (var j = 8; j <= 12; j++) { arr.push({ x: 4 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 15 * 42, y: j * 42, w: 38, h: 38 }); }
-            for (var i = 7; i <= 12; i++) { arr.push({ x: i * 42, y: 4 * 42, w: 38, h: 38 }); arr.push({ x: i * 42, y: 10 * 42, w: 38, h: 38 }); }
-            return arr;
-        }},
-        4: { name: 'Крепость', build: function() {
-            var arr = [];
-            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
-            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
-            for (var i = 8; i <= 11; i++) { arr.push({ x: i * 42, y: 5 * 42, w: 38, h: 38 }); arr.push({ x: i * 42, y: 10 * 42, w: 38, h: 38 }); }
-            for (var j = 6; j <= 9; j++) { arr.push({ x: 8 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 11 * 42, y: j * 42, w: 38, h: 38 }); }
-            for (var i = 2; i <= 4; i++) for (var j = 2; j <= 4; j++) {
-                arr.push({ x: i * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: (17 - i) * 42, y: j * 42, w: 38, h: 38 });
-                arr.push({ x: i * 42, y: (13 - j) * 42, w: 38, h: 38 }); arr.push({ x: (17 - i) * 42, y: (13 - j) * 42, w: 38, h: 38 });
-            }
-            return arr;
-        }}
-    };
-    
     function buildBricks() { return MAPS[currentMap].build(); }
     
     function collide(r1, r2) {
@@ -534,7 +456,8 @@
         else { bullet.x = tank.x + 40; bullet.y = tank.y + 16; bullet.speedX = 8; bullet.speedY = 0; }
         if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'shoot', bullet: bullet, dir: tank.dir }));
     }
-        function updateBullet(bullet, isP1Bullet) {
+    
+    function updateBullet(bullet, isP1Bullet) {
         if (!bullet.active) return;
         bullet.x += bullet.speedX; bullet.y += bullet.speedY;
         if (bullet.x < -50 || bullet.x > 850 || bullet.y < -50 || bullet.y > 650) { bullet.active = false; return; }
@@ -565,37 +488,139 @@
             }
         }
     }
-    
-    function updateEnemies() {
+
+    function botBlocked(e, dir) {
+        var nx = e.x, ny = e.y;
+        if (dir === 0) ny -= 4; else if (dir === 1) ny += 4;
+        else if (dir === 2) nx -= 4; else nx += 4;
+        if (nx < 2 || nx > 758 || ny < 2 || ny > 558) return true;
+        for (var k = 0; k < bricks.length; k++) {
+            if (collide({x: nx, y: ny, w: 40, h: 40}, bricks[k])) return true;
+        }
+        return false;
+    }
+
+    function pathClear(x1, y1, x2, y2) {
+        var dx = x2 - x1, dy = y2 - y1;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        var steps = Math.ceil(dist / 18);
+        if (steps < 2) return true;
+        for (var s = 1; s < steps; s++) {
+            var px = x1 + dx * s / steps, py = y1 + dy * s / steps;
+            for (var k = 0; k < bricks.length; k++) {
+                var b = bricks[k];
+                if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) return false;
+            }
+        }
+        return true;
+    }
+
+    function botShoot(e) {
+        var eb = { x: 0, y: 0, w: 8, h: 8, speedX: 0, speedY: 0 };
+        if (e.dir === 0) { eb.x = e.x+16; eb.y = e.y; eb.speedY = -6; }
+        else if (e.dir === 1) { eb.x = e.x+16; eb.y = e.y+40; eb.speedY = 6; }
+        else if (e.dir === 2) { eb.x = e.x; eb.y = e.y+16; eb.speedX = -6; }
+        else { eb.x = e.x+40; eb.y = e.y+16; eb.speedX = 6; }
+        enemyBullets.push(eb);
+    }
+          function updateEnemies() {
         for (var i = 0; i < enemies.length; i++) {
             var e = enemies[i];
             e.moveTimer++; e.shootTimer++;
-            if (e.moveTimer > 50) { e.moveTimer = 0; e.dir = Math.floor(Math.random() * 4); }
-            var oldX = e.x, oldY = e.y;
-            if (e.dir === 0) e.y -= 2; if (e.dir === 1) e.y += 2;
-            if (e.dir === 2) e.x -= 2; if (e.dir === 3) e.x += 2;
-            if (e.x < 2) e.x = 2; if (e.x > 758) e.x = 758;
-            if (e.y < 2) e.y = 2; if (e.y > 400) e.y = 400;
-            for (var k = 0; k < bricks.length; k++) {
-                if (collide({x: e.x, y: e.y, w: 40, h: 40}, bricks[k])) { e.x = oldX; e.y = oldY; break; }
+
+            var ecx = e.x + 20, ecy = e.y + 20;
+            var pcx = p1.x + 20, pcy = p1.y + 20;
+            var sameRow = Math.abs(pcy - ecy) < 28;
+            var sameCol = Math.abs(pcx - ecx) < 28;
+            var canSee = (sameRow || sameCol) && pathClear(ecx, ecy, pcx, pcy);
+
+            var dirToPlayer;
+            if (Math.abs(pcx - ecx) > Math.abs(pcy - ecy)) dirToPlayer = (pcx > ecx) ? 3 : 2;
+            else dirToPlayer = (pcy > ecy) ? 1 : 0;
+
+            var acted = false;
+
+            if (p1Bullet.active) {
+                var bx = p1Bullet.x, by = p1Bullet.y;
+                if (p1Bullet.speedY === 0 && Math.abs(by - ecy) < 26) {
+                    var coming = (p1Bullet.speedX > 0 && bx < e.x) || (p1Bullet.speedX < 0 && bx > e.x + 40);
+                    if (coming && Math.abs(bx - ecx) < 240) {
+                        if (!botBlocked(e, 0)) e.dir = 0;
+                        else if (!botBlocked(e, 1)) e.dir = 1;
+                        else e.dir = dirToPlayer;
+                        acted = true;
+                    }
+                }
+                if (!acted && p1Bullet.speedX === 0 && Math.abs(bx - ecx) < 26) {
+                    var coming2 = (p1Bullet.speedY > 0 && by < e.y) || (p1Bullet.speedY < 0 && by > e.y + 40);
+                    if (coming2 && Math.abs(by - ecy) < 240) {
+                        if (!botBlocked(e, 2)) e.dir = 2;
+                        else if (!botBlocked(e, 3)) e.dir = 3;
+                        else e.dir = dirToPlayer;
+                        acted = true;
+                    }
+                }
             }
-            if (e.shootTimer > 45) {
+
+            if (!acted) {
+                if (canSee) {
+                    if (sameRow) e.dir = (pcx > ecx) ? 3 : 2;
+                    else e.dir = (pcy > ecy) ? 1 : 0;
+                } else if (e.moveTimer > 10) {
+                    e.moveTimer = 0;
+                    if (!botBlocked(e, dirToPlayer)) {
+                        e.dir = dirToPlayer;
+                    } else {
+                        var alt1, alt2;
+                        if (dirToPlayer === 0 || dirToPlayer === 1) { alt1 = (pcx > ecx) ? 3 : 2; alt2 = (pcx > ecx) ? 2 : 3; }
+                        else { alt1 = (pcy > ecy) ? 1 : 0; alt2 = (pcy > ecy) ? 0 : 1; }
+                        if (!botBlocked(e, alt1)) e.dir = alt1;
+                        else if (!botBlocked(e, alt2)) e.dir = alt2;
+                        else {
+                            var back = (dirToPlayer === 0) ? 1 : (dirToPlayer === 1) ? 0 : (dirToPlayer === 2) ? 3 : 2;
+                            if (!botBlocked(e, back)) e.dir = back;
+                        }
+                    }
+                }
+            }
+
+            var sp = canSee ? 3 : 2;
+            var oldX = e.x, oldY = e.y;
+            if (e.dir === 0) e.y -= sp; else if (e.dir === 1) e.y += sp;
+            else if (e.dir === 2) e.x -= sp; else if (e.dir === 3) e.x += sp;
+            if (e.x < 2) e.x = 2;
+            if (e.x > 758) e.x = 758;
+            if (e.y < 2) e.y = 2;
+            if (e.y > 558) e.y = 558;
+            for (var k = 0; k < bricks.length; k++) {
+                if (collide({x: e.x, y: e.y, w: 40, h: 40}, bricks[k])) { e.x = oldX; e.y = oldY; e.moveTimer = 10; break; }
+            }
+
+            if (canSee && e.shootTimer > 38) {
                 e.shootTimer = 0;
-                var eb = { x: 0, y: 0, w: 8, h: 8, speedX: 0, speedY: 0 };
-                if (e.dir === 0) { eb.x = e.x+16; eb.y = e.y; eb.speedX = 0; eb.speedY = -6; }
-                else if (e.dir === 1) { eb.x = e.x+16; eb.y = e.y+40; eb.speedX = 0; eb.speedY = 6; }
-                else if (e.dir === 2) { eb.x = e.x; eb.y = e.y+16; eb.speedX = -6; eb.speedY = 0; }
-                else { eb.x = e.x+40; eb.y = e.y+16; eb.speedX = 6; eb.speedY = 0; }
-                enemyBullets.push(eb);
+                botShoot(e);
+            }
+
+            if (!canSee && e.shootTimer > 70) {
+                var fx = ecx, fy = ecy;
+                if (e.dir === 0) fy -= 30; else if (e.dir === 1) fy += 30;
+                else if (e.dir === 2) fx -= 30; else fx += 30;
+                for (var k = 0; k < bricks.length; k++) {
+                    if (collide({x: fx-4, y: fy-4, w: 8, h: 8}, bricks[k])) {
+                        e.shootTimer = 0;
+                        botShoot(e);
+                        break;
+                    }
+                }
             }
         }
+       
         if (enemies.length === 0 && !gameOver && (currentMode === 'bots' || currentMode === 'ctf')) {
             for (var i = 0; i < 3; i++) {
-                enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
+                enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: Math.floor(Math.random()*10), shootTimer: Math.floor(Math.random() * 50) });
             }
         }
     }
-    
     function updateEnemyBullets() {
         for (var i = 0; i < enemyBullets.length; i++) {
             var eb = enemyBullets[i];
@@ -605,6 +630,7 @@
                 enemyBullets.splice(i, 1); i--; continue;
             }
             var bulletRect = { x: eb.x, y: eb.y, w: 8, h: 8 };
+            
             if (collide(bulletRect, {x: p1.x, y: p1.y, w: 40, h: 40})) {
                 p1.health--;
                 updateUI();
@@ -613,6 +639,7 @@
                 if (p1.health <= 0) gameOver = true;
                 continue;
             }
+            
             if (currentMode === 'pvp' && gameSource === 'offline' && p2 && collide(bulletRect, {x: p2.x, y: p2.y, w: 40, h: 40})) {
                 p2.health--;
                 enemyBullets.splice(i, 1);
@@ -620,6 +647,7 @@
                 if (p2.health <= 0) gameOver = true;
                 continue;
             }
+            
             for (var j = 0; j < bricks.length; j++) {
                 if (collide(bulletRect, bricks[j])) {
                     bricks.splice(j, 1);
@@ -1098,4 +1126,4 @@
     gameLoop();
 </script>
 </body>
-</html>
+</html>              

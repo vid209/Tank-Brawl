@@ -103,11 +103,35 @@
             margin: 4px 0;
             text-align: center;
         }
+        .network-panel .check-btn {
+            background: #3a5a8a;
+            border: 2px solid #6aaaee;
+            border-radius: 30px;
+            padding: 8px;
+            color: #cceeff;
+            font-family: monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 4px 0;
+        }
+        .network-panel .check-btn:active { transform: scale(0.97); }
         .status-text {
             color: #cfc68f;
             font-size: 0.7rem;
             margin-top: 6px;
             text-align: center;
+            min-height: 2.5em;
+        }
+        .status-text.ok { color: #88dd66; }
+        .status-text.err { color: #ff6666; }
+        .status-text.info { color: #aaccff; }
+        .hint {
+            font-size: 0.6rem;
+            color: #8a8a6a;
+            margin-top: 6px;
+            line-height: 1.3;
         }
         .game-container {
             display: flex;
@@ -153,7 +177,6 @@
             flex-shrink: 0;
             gap: 20px;
         }
-        /* ========= КРЕСТОВИНА ========= */
         .joystick {
             position: relative;
             width: 170px;
@@ -294,8 +317,7 @@
         }
         .hidden { display: none !important; }
     </style>
-</head>
-<body>
+</head><body>
 <div id="menu" class="menu">
     <h1> TANK BRAWL </h1>
     
@@ -324,9 +346,11 @@
         </div>
         
         <div id="networkPanel" class="network-panel">
-            <input type="text" id="serverIp" placeholder="Hamachi-IP (25.x.x.x)" value="25.0.0.1">
+            <input type="text" id="serverIp" placeholder="Hamachi-IP (25.x.x.x)" value="25.4.96.106">
             <input type="text" id="serverPort" placeholder="Порт" value="8080">
-            <div id="netStatus" class="status-text">Введи Hamachi-IP сервера</div>
+            <button class="check-btn" onclick="checkConnection()">🔍 Проверить соединение</button>
+            <div id="netStatus" class="status-text info">Введи Hamachi-IP сервера и нажми «Проверить»</div>
+            <div class="hint">⚠️ Для сетевой игры на компьютере хоста должен быть запущен сервер на порту 8080. Без него подключение невозможно.</div>
         </div>
     </div>
     
@@ -352,7 +376,6 @@
     <canvas id="canvas" width="800" height="600"></canvas>
     
     <div class="touch-controls" id="touchControls">
-        <!-- КРЕСТОВИНА (джойстик) -->
         <div class="joystick" id="joystick">
             <div class="joystick-base"></div>
             <div class="joystick-cross"></div>
@@ -370,7 +393,6 @@
     </div>
     <div id="onlineStatus" class="status-text" style="margin-top:4px;color:#88aa44;"></div>
 </div>
-
 <script>
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
@@ -387,6 +409,7 @@
     var lastSend = 0;
     var currentMap = 1;
     var maxPlayers = 2;
+    var connectTimeout = null;
     
     var selectedSource = null;
     var selectedMode = null;
@@ -402,7 +425,7 @@
     var p2Delay = 0;
     
     var enemies = [];
-    var enemyBullets = []; // пули ботов — теперь реально существуют
+    var enemyBullets = [];
     var flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
     
     var keys = { left: false, right: false, up: false, down: false, fire: false };
@@ -511,8 +534,7 @@
         else { bullet.x = tank.x + 40; bullet.y = tank.y + 16; bullet.speedX = 8; bullet.speedY = 0; }
         if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'shoot', bullet: bullet, dir: tank.dir }));
     }
-    
-    function updateBullet(bullet, isP1Bullet) {
+        function updateBullet(bullet, isP1Bullet) {
         if (!bullet.active) return;
         bullet.x += bullet.speedX; bullet.y += bullet.speedY;
         if (bullet.x < -50 || bullet.x > 850 || bullet.y < -50 || bullet.y > 650) { bullet.active = false; return; }
@@ -544,7 +566,6 @@
         }
     }
     
-    // ========= БОТЫ: стреляют И УБИВАЮТ =========
     function updateEnemies() {
         for (var i = 0; i < enemies.length; i++) {
             var e = enemies[i];
@@ -558,7 +579,6 @@
             for (var k = 0; k < bricks.length; k++) {
                 if (collide({x: e.x, y: e.y, w: 40, h: 40}, bricks[k])) { e.x = oldX; e.y = oldY; break; }
             }
-            // Боты стреляют
             if (e.shootTimer > 45) {
                 e.shootTimer = 0;
                 var eb = { x: 0, y: 0, w: 8, h: 8, speedX: 0, speedY: 0 };
@@ -569,7 +589,6 @@
                 enemyBullets.push(eb);
             }
         }
-        // Респавн врагов
         if (enemies.length === 0 && !gameOver && (currentMode === 'bots' || currentMode === 'ctf')) {
             for (var i = 0; i < 3; i++) {
                 enemies.push({ x: 100 + i * 250, y: 80, w: 40, h: 40, dir: 1, moveTimer: 0, shootTimer: Math.floor(Math.random() * 50) });
@@ -577,7 +596,6 @@
         }
     }
     
-    // ========= ПУЛИ БОТОВ ЛЕТЯТ И УБИВАЮТ =========
     function updateEnemyBullets() {
         for (var i = 0; i < enemyBullets.length; i++) {
             var eb = enemyBullets[i];
@@ -587,8 +605,6 @@
                 enemyBullets.splice(i, 1); i--; continue;
             }
             var bulletRect = { x: eb.x, y: eb.y, w: 8, h: 8 };
-            
-            // УБИВАЕТ ИГРОКА
             if (collide(bulletRect, {x: p1.x, y: p1.y, w: 40, h: 40})) {
                 p1.health--;
                 updateUI();
@@ -597,8 +613,6 @@
                 if (p1.health <= 0) gameOver = true;
                 continue;
             }
-            
-            // Убивает P2 в офлайн PVP
             if (currentMode === 'pvp' && gameSource === 'offline' && p2 && collide(bulletRect, {x: p2.x, y: p2.y, w: 40, h: 40})) {
                 p2.health--;
                 enemyBullets.splice(i, 1);
@@ -606,8 +620,6 @@
                 if (p2.health <= 0) gameOver = true;
                 continue;
             }
-            
-            // Ломает стены
             for (var j = 0; j < bricks.length; j++) {
                 if (collide(bulletRect, bricks[j])) {
                     bricks.splice(j, 1);
@@ -744,7 +756,6 @@
         if (p1Bullet.active) { ctx.fillStyle = '#ffcc44'; ctx.fillRect(p1Bullet.x, p1Bullet.y, 8, 8); }
         if (currentMode === 'pvp' && gameSource === 'offline' && p2Bullet.active) { ctx.fillStyle = '#ff6644'; ctx.fillRect(p2Bullet.x, p2Bullet.y, 8, 8); }
         
-        // Пули ботов — красные
         for (var i = 0; i < enemyBullets.length; i++) {
             var eb = enemyBullets[i];
             ctx.fillStyle = '#ff4400';
@@ -757,7 +768,6 @@
         }
     }
     
-    // ========= ВЫБОР =========
     window.selectSource = function(source, btn) {
         selectedSource = source; gameSource = source;
         var allBtns = document.querySelectorAll('.mode-btn');
@@ -789,9 +799,49 @@
         btn.classList.add('selected');
     };
     
+    window.checkConnection = function() {
+        var ip = document.getElementById('serverIp').value;
+        var port = document.getElementById('serverPort').value;
+        var status = document.getElementById('netStatus');
+        status.className = 'status-text info';
+        status.innerText = '🔄 Проверка ' + ip + ':' + port + '...';
+        
+        var testWs = new WebSocket('ws://' + ip + ':' + port);
+        var done = false;
+        
+        var timer = setTimeout(function() {
+            if (!done) {
+                done = true;
+                status.className = 'status-text err';
+                status.innerText = '❌ Таймаут. Сервер не отвечает на ' + ip + ':' + port + '. Убедитесь, что он запущен.';
+                try { testWs.close(); } catch(e) {}
+            }
+        }, 5000);
+        
+        testWs.onopen = function() {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            status.className = 'status-text ok';
+            status.innerText = '✅ Соединение установлено! Сервер на ' + ip + ':' + port + ' работает.';
+            testWs.close();
+        };
+        
+        testWs.onerror = function() {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            status.className = 'status-text err';
+            status.innerText = '❌ Не удалось подключиться к ' + ip + ':' + port + '. Сервер не запущен или порт закрыт.';
+        };
+    };
+    
     window.startSelectedMode = function() {
         if (!selectedSource) { alert('Выбери способ!'); return; }
         if (!selectedMode) { alert('Выбери режим!'); return; }
+        
+        var netStatus = document.getElementById('netStatus');
+        if (netStatus) { netStatus.className = 'status-text info'; }
         
         if (selectedSource === 'online') {
             var ip = document.getElementById('serverIp').value;
@@ -816,10 +866,28 @@
     
     function connectToServer(ip, port) {
         var url = 'ws://' + ip + ':' + port;
-        document.getElementById('netStatus').innerText = '🔄 Подключение...';
-        try { ws = new WebSocket(url); } catch(e) { document.getElementById('netStatus').innerText = '❌ Ошибка!'; return; }
+        var status = document.getElementById('netStatus');
+        status.className = 'status-text info';
+        status.innerText = '🔄 Подключение к ' + ip + ':' + port + '...';
+        
+        try { ws = new WebSocket(url); } catch(e) {
+            status.className = 'status-text err';
+            status.innerText = '❌ Ошибка: ' + e.message;
+            return;
+        }
+        
+        connectTimeout = setTimeout(function() {
+            if (ws && ws.readyState !== WebSocket.OPEN) {
+                status.className = 'status-text err';
+                status.innerText = '❌ Таймаут. Сервер на ' + ip + ':' + port + ' не отвечает.';
+                try { ws.close(); } catch(e) {}
+            }
+        }, 5000);
+        
         ws.onopen = function() {
-            document.getElementById('netStatus').innerText = '✅ Подключено!';
+            clearTimeout(connectTimeout);
+            status.className = 'status-text ok';
+            status.innerText = '✅ Подключено!';
             currentMode = selectedMode;
             gameSource = 'online';
             currentMap = selectedMap;
@@ -834,6 +902,7 @@
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
         };
+        
         ws.onmessage = function(event) {
             try {
                 var data = JSON.parse(event.data);
@@ -855,8 +924,21 @@
                 if (data.type === 'disconnect') { players.delete(data.playerId); updateUI(); }
             } catch(e) {}
         };
-        ws.onerror = function() { document.getElementById('netStatus').innerText = '❌ Ошибка!'; };
-        ws.onclose = function() { if (gameRunning) { setTimeout(exitToMenu, 2000); } };
+        
+        ws.onerror = function() {
+            clearTimeout(connectTimeout);
+            status.className = 'status-text err';
+            status.innerText = '❌ Ошибка подключения. Проверьте IP и порт.';
+        };
+        
+        ws.onclose = function() {
+            clearTimeout(connectTimeout);
+            if (gameRunning) {
+                status.className = 'status-text err';
+                status.innerText = '❌ Соединение потеряно.';
+                setTimeout(exitToMenu, 2000);
+            }
+        };
     }
     
     function exitToMenu() {
@@ -900,7 +982,6 @@
         }
     });
     
-    // ========= ДЖОЙСТИК (КРЕСТОВИНА) =========
     function setupJoystick() {
         var joystick = document.getElementById('joystick');
         var knob = document.getElementById('joystickKnob');
@@ -950,16 +1031,13 @@
             
             knob.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
             
-            // Определяем направление (4 направления, как крестовина)
             var threshold = maxDist * 0.3;
             
-            // Сброс всех
             keys.left = false;
             keys.right = false;
             keys.up = false;
             keys.down = false;
             
-            // Приоритет — более сильное отклонение
             if (Math.abs(dx) > Math.abs(dy)) {
                 if (dx > threshold) keys.right = true;
                 else if (dx < -threshold) keys.left = true;

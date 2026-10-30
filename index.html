@@ -317,8 +317,7 @@
         }
         .hidden { display: none !important; }
     </style>
-</head>
-</head>
+</head></head>
 <body>
 <div id="menu" class="menu">
     <h1> TANK BRAWL </h1>
@@ -394,8 +393,85 @@
         </div>
     </div>
     <div id="onlineStatus" class="status-text" style="margin-top:4px;color:#88aa44;"></div>
-</div>
-    function buildBricks() { return MAPS[currentMap].build(); }
+</div><script>
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    
+    var currentMode = null;
+    var gameSource = null;
+    var gameRunning = false;
+    var gameOver = false;
+    var score = 0;
+    var bricks = [];
+    var ws = null;
+    var myId = null;
+    var players = new Map();
+    var lastSend = 0;
+    var currentMap = 1;
+    var maxPlayers = 2;
+    var connectTimeout = null;
+    
+    var selectedSource = null;
+    var selectedMode = null;
+    var selectedMap = 1;
+    var selectedPlayers = 2;
+    
+    var p1 = { x: 380, y: 520, w: 40, h: 40, dir: 0, health: 3 };
+    var p1Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
+    var p1Delay = 0;
+    
+    var p2 = null;
+    var p2Bullet = { active: false, x: 0, y: 0, speedX: 0, speedY: 0 };
+    var p2Delay = 0;
+    
+    var enemies = [];
+    var enemyBullets = [];
+    var flag = { x: 700, y: 80, w: 28, h: 28, captured: false, carrier: null };
+    
+    var keys = { left: false, right: false, up: false, down: false, fire: false };
+    var keysP2 = { left: false, right: false, up: false, down: false, fire: false };
+    
+    var MAPS = {
+        1: { name: 'Классика', build: function() {
+            var arr = [];
+            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
+            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
+            for (var i = 3; i < 18; i += 4) for (var j = 4; j < 10; j += 2) arr.push({ x: i * 42, y: j * 42, w: 38, h: 38 });
+            return arr;
+        }},
+        2: { name: 'Battle City', build: function() {
+            var arr = [];
+            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
+            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
+            for (var i = 6; i <= 13; i++) { arr.push({ x: i * 42, y: 6 * 42, w: 38, h: 38 }); arr.push({ x: i * 42, y: 8 * 42, w: 38, h: 38 }); }
+            for (var j = 3; j <= 6; j++) { arr.push({ x: 9 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 10 * 42, y: j * 42, w: 38, h: 38 }); }
+            for (var j = 8; j <= 11; j++) { arr.push({ x: 9 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 10 * 42, y: j * 42, w: 38, h: 38 }); }
+            arr.push({ x: 3*42, y: 3*42, w: 38, h: 38 }); arr.push({ x: 16*42, y: 3*42, w: 38, h: 38 });
+            arr.push({ x: 3*42, y: 11*42, w: 38, h: 38 }); arr.push({ x: 16*42, y: 11*42, w: 38, h: 38 });
+            return arr;
+        }},
+        3: { name: 'Лабиринт', build: function() {
+            var arr = [];
+            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
+            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
+            for (var j = 2; j <= 6; j++) { arr.push({ x: 4 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 15 * 42, y: j * 42, w: 38, h: 38 }); }
+            for (var j = 8; j <= 12; j++) { arr.push({ x: 4 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 15 * 42, y: j * 42, w: 38, h: 38 }); }
+            for (var i = 7; i <= 12; i++) { arr.push({ x: i * 42, y: 4 * 42, w: 38, h: 38 }); arr.push({ x: i * 42, y: 10 * 42, w: 38, h: 38 }); }
+            return arr;
+        }},
+        4: { name: 'Крепость', build: function() {
+            var arr = [];
+            for (var i = 0; i < 20; i++) { arr.push({ x: i * 42, y: 0, w: 38, h: 38 }); arr.push({ x: i * 42, y: 562, w: 38, h: 38 }); }
+            for (var i = 0; i < 15; i++) { arr.push({ x: 0, y: i * 42, w: 38, h: 38 }); arr.push({ x: 762, y: i * 42, w: 38, h: 38 }); }
+            for (var i = 8; i <= 11; i++) { arr.push({ x: i * 42, y: 5 * 42, w: 38, h: 38 }); arr.push({ x: i * 42, y: 10 * 42, w: 38, h: 38 }); }
+            for (var j = 6; j <= 9; j++) { arr.push({ x: 8 * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: 11 * 42, y: j * 42, w: 38, h: 38 }); }
+            for (var i = 2; i <= 4; i++) for (var j = 2; j <= 4; j++) {
+                arr.push({ x: i * 42, y: j * 42, w: 38, h: 38 }); arr.push({ x: (17 - i) * 42, y: j * 42, w: 38, h: 38 });
+                arr.push({ x: i * 42, y: (13 - j) * 42, w: 38, h: 38 }); arr.push({ x: (17 - i) * 42, y: (13 - j) * 42, w: 38, h: 38 });
+            }
+            return arr;
+        }}
+    };    function buildBricks() { return MAPS[currentMap].build(); }
     
     function collide(r1, r2) {
         return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
@@ -522,8 +598,7 @@
         else if (e.dir === 2) { eb.x = e.x; eb.y = e.y+16; eb.speedX = -6; }
         else { eb.x = e.x+40; eb.y = e.y+16; eb.speedX = 6; }
         enemyBullets.push(eb);
-    }
-          function updateEnemies() {
+    }    function updateEnemies() {
         for (var i = 0; i < enemies.length; i++) {
             var e = enemies[i];
             e.moveTimer++; e.shootTimer++;
@@ -1126,4 +1201,4 @@
     gameLoop();
 </script>
 </body>
-</html>              
+</html>
